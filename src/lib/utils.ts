@@ -1,0 +1,28 @@
+export function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number) {
+	let timeout: ReturnType<typeof setTimeout>;
+
+	return (...args: Parameters<F>): void => {
+		if (timeout) {
+			clearTimeout(timeout);
+		}
+		timeout = setTimeout(() => func(...args), waitFor);
+	};
+}
+
+export function arraysEqual<T>(
+	a: T[] = [],
+	b: T[] = [],
+	comparator: (a: T, b: T, indexA: number, indexB: number) => boolean
+): boolean {
+	if (a === b) return true;
+	if (!a || !b) return false;
+	if (a.length !== b.length) return false;
+
+	for (let i = 0; i < a.length; i++) {
+		if (!comparator(a[i], b[i], i, i)) {
+			return false;
+		}
+	}
+
+	return true;
+}
