@@ -1,25 +1,21 @@
 # 🎬 BossFlix Movie Project
 
-Welcome to the BossFlix movie project, a sleek and modern web application powered by the amazing [`Svelte`](https://github.com/sveltejs/cli) framework.
+Welcome to the BossFlix movie project, a sleek and modern web application powered by the Svelte framework.
 
 ## 🚀 Getting Started
 
-Transform your ideas into reality with these simple steps:
+Clone this repository and install dependencies:
 
 ```sh
-# Kickstart your movie adventure in the current directory
-npx sv create
+# Clone the repo (choose one)
+git clone https://github.com/p0xz/BossFlix-Moviesite.git
+cd BossFlix-Moviesite
 
-# Or create a new cinematic experience in a custom folder
-npx sv create bossflix
-```
+# or using GitHub CLI
+gh repo clone p0xz/BossFlix-Moviesite
+cd BossFlix-Moviesite
 
-## 🎯 Development Mode
-
-After getting your project set up, install what you need:
-
-```sh
-# Pick your package manager
+# Install dependencies (choose one)
 npm install
 # or
 pnpm install
@@ -29,7 +25,9 @@ bun install
 yarn
 ```
 
-Fire up the dev server:
+## 🎯 Development Mode
+
+After installing dependencies, run the dev server:
 
 ```sh
 npm run dev
