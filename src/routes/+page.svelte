@@ -71,7 +71,7 @@
 			}}
 			oninput={handleInput}
 			spellcheck="false"
-			class="min-h-12 w-sm rounded-lg bg-zinc-800 px-4 ring-0 transition-colors duration-300 outline-none placeholder:font-semibold placeholder:text-white/60 focus:border-white max-md:max-w-[90%]"
+			class="min-h-12 w-sm rounded-lg bg-secondary px-4 ring-0 transition-colors duration-300 outline-none placeholder:font-semibold placeholder:text-white/60 focus:border-white max-md:max-w-[90%]"
 		/>
 		<p class="text-sm text-white/70">
 			we recommend using <a

@@ -25,6 +25,6 @@
 
 @layer base {
 	body {
-		@apply bg-zinc-950 font-Poppins text-white;
+		@apply bg-primary font-Poppins text-white;
 	}
 }

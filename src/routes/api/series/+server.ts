@@ -1,10 +1,12 @@
-import type { PageServerLoad } from './$types';
-import type { Imdb } from '$lib';
+import type { RequestHandler } from './$types';
+import { type Imdb, toBoolean } from '$lib';
 
-export const load = (async ({ params, request }) => {
-	const { season } = Object.fromEntries(new URL(request.url).searchParams.entries()) as {
-		season?: string;
-		episode?: string;
+export const GET: RequestHandler = async ({ url }) => {
+	let { id, season, context } = Object.fromEntries(url.searchParams.entries()) as {
+		id: string;
+		season: string;
+		episode: string;
+		context: string;
 	};
 
 	const query = /* GraphQL */ `
@@ -51,9 +53,6 @@ export const load = (async ({ params, request }) => {
 				}
 
 				episodes {
-					seasons @include(if: $full) {
-						number
-					}
 					episodes(first: $first, after: $after, filter: { includeSeasons: [$season] }) {
 						pageInfo {
 							hasNextPage
@@ -89,35 +88,33 @@ export const load = (async ({ params, request }) => {
 					}
 				}
 			}
+			# optionally:
 			# releaseDate { year month day }
 			# primaryImage { url }
 		}
 	`;
 
 	const variables = {
-		id: params.id,
+		id, // series ttid, e.g. "tt0944947"
 		season: season || 1,
-		after: null,
+		after: null, // or a saved cursor
 		first: 50,
-		full: true
+		full: (context ?? '') === 'full'
 	};
 
 	const response = await fetch('https://caching.graphql.imdb.com/', {
 		headers: {
 			'accept-language': 'en-US,en;q=0.9,sk;q=0.8',
 			'content-type': 'application/json',
-			'x-imdb-user-language': 'en-US',
-			'Cache-Control': 'no-cache'
+			'x-imdb-user-language': 'en-US'
 		},
 		body: JSON.stringify({ query, variables }),
 		method: 'POST'
-	}).then((res) => res.json() as Promise<{ data: { title: Imdb.Series } }>);
+	}).then(
+		(res) => res.json() as Promise<{ data: { title: { episodes: Imdb.Series['episodes'] } } }>
+	);
 
-	// console.dir(response, { depth: Infinity });
+	// console.dir(response.data.title, { depth: Infinity });
 
-	return {
-		series: response.data.title
-	};
-}) satisfies PageServerLoad;
-
-export const prerender = 'auto';
+	return new Response(JSON.stringify({ episodes: response.data.title.episodes.episodes }));
+};

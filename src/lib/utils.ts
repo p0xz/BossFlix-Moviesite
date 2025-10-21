@@ -26,3 +26,7 @@ export function arraysEqual<T>(
 
 	return true;
 }
+
+export function toBoolean(value: boolean | string | undefined): boolean {
+	return value == 'true';
+} 
