@@ -7,11 +7,13 @@
 		return `https://vidsrc-embed.ru/embed/movie?imdb=${id}`;
 	}
 
-	const title = data?.movie?.originalTitleText?.text ?? 'Untitled';
-	const year = data?.movie?.releaseDate?.year;
-	const genres = data?.movie?.titleGenres?.genres?.map((g) => g?.genre?.text);
-	const directors = data.movie.directors.edges;
-	const rating = data?.movie?.ratingsSummary?.aggregateRating;
+	const movie = data?.movie;
+
+	const title = movie?.originalTitleText?.text ?? 'Untitled';
+	const year = movie?.releaseDate?.year;
+	const genres = movie?.titleGenres?.genres?.map((g) => g?.genre?.text);
+	const directors = movie?.directors.edges;
+	const rating = movie?.ratingsSummary?.aggregateRating;
 </script>
 
 <svelte:head>
@@ -47,9 +49,8 @@
 
 			<p class="ml-0.5 text-white/70">
 				<span class="font-medium">
-					Director
-					<span class:hidden={directors.length <= 1}>s</span>
-				</span>:
+					Director<span class:hidden={directors.length <= 1}>s</span>:
+				</span>
 				{directors.map((d) => d?.node?.name?.nameText?.text).join(' | ')}
 			</p>
 		</div>

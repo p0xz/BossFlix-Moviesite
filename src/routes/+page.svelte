@@ -90,7 +90,9 @@
 		>
 			{#each searchResults as searchResult (searchResult.id)}
 				<li class="w-fit text-center transition-transform hover:scale-105">
-					<a href={`/${searchResult.type}/${searchResult.id}`}>
+					<a
+						href={`/${searchResult.type}/${searchResult.id}${searchResult.type === 'series' ? `/?season=1&episode=1` : ''}`}
+					>
 						<img
 							src={searchResult.imageUrl}
 							loading="lazy"

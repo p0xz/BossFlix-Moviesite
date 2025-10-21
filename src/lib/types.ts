@@ -1,33 +1,79 @@
 export namespace Imdb {
-    export interface Movie {
-        ratingsSummary: {
-            aggregateRating: number;
-        };
-        originalTitleText: {
-            text: string;
-        };
-        releaseDate: {
-            day: number;
-            month: number;
-            year: number;
-        };
-        titleGenres: {
-            genres: {
-                genre: {
-                    text: string;
-                };
-            }[];
-        };
-        directors: {
-            edges: {
-                node: {
-                    name: {
-                        nameText: {
-                            text: string;
-                        };
+    interface ratingsSummary {
+        aggregateRating: number;
+    }
+
+    interface originalTitleText {
+        text: string;
+    }
+
+    interface releaseDate {
+        day: number;
+        month: number;
+        year: number;
+    }
+
+    interface titleGenres {
+        genres: {
+            genre: {
+                text: string;
+            };
+        }[];
+    }
+
+    interface directorNode {
+        edges: {
+            node: {
+                name: {
+                    nameText: {
+                        text: string;
                     };
                 };
-            }[];
-        };
+            };
+        }[];
+    }
+
+    // tv series specific
+    interface Seasons {
+        number: number;
+    }
+
+    interface pageInfo {
+        hasNextPage: boolean;
+        endCursor: string;
+    }
+
+    interface EpisodeNode {
+        node: {
+            id: string;
+            titleText: {
+                text: string;
+            };
+            series: {
+                episodeNumber: {
+                    seasonNumber: number;
+                    episodeNumber: number;
+                };
+            };
+        }
+    }
+
+    interface _MediaInfo {
+        ratingsSummary: ratingsSummary;
+        originalTitleText: originalTitleText;
+        releaseDate: releaseDate;
+        titleGenres: titleGenres;
+        directors: directorNode;
+    }
+    export interface Movie extends _MediaInfo { }
+
+    export interface Series extends _MediaInfo {
+        episodes: {
+            seasons: Seasons[];
+            episodes: {
+                pageInfo: pageInfo;
+                edges: EpisodeNode[];
+            }
+        }
     }
 }

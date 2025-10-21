@@ -31,7 +31,7 @@ export const actions = {
                 type: item.qid === 'movie' ? 'movie' : item.qid === 'tvSeries' ? 'series' : 'unknown',
                 release: item.y,
             }
-        }) || [];
+        }) as { id: string; title: string; rank: number; imageUrl?: string; type: 'movie' | 'series' | 'unknown'; release?: number }[] || [];
         // console.log(`[BossFlix] Searched for "${media}" and found ${search.length} results.`);
 
         return { search };
