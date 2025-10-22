@@ -96,7 +96,7 @@ export const load = (async ({ params, request }) => {
 
 	const variables = {
 		id: params.id,
-		season: season || 1,
+		season: season || '1',
 		after: null,
 		first: 50,
 		full: true
@@ -113,7 +113,7 @@ export const load = (async ({ params, request }) => {
 		method: 'POST'
 	}).then((res) => res.json() as Promise<{ data: { title: Imdb.Series } }>);
 
-	// console.dir(response, { depth: Infinity });
+	console.dir(response, { depth: Infinity });
 
 	return {
 		series: response.data.title

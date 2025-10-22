@@ -2,6 +2,7 @@
 	import type { PageProps } from './$types';
 	import { slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { type Imdb } from '$lib';
 
 	import { debounce, arraysEqual } from '$lib';
 	import { enhance } from '$app/forms';
@@ -12,7 +13,7 @@
 
 	let { form }: PageProps = $props();
 
-	let searchResults = $state<NonNullable<typeof form>['search']>([]);
+	let searchResults = $state<Imdb.Search.Edge[]>([]);
 
 	const submitDebounced = debounce(() => formElement?.requestSubmit(), 300);
 
@@ -31,12 +32,16 @@
 		console.log(form?.search);
 		if (!form?.search) return;
 
-		const areArraysEqual = arraysEqual(form?.search, searchResults, (oldSearch, newSearch) => {
-			return oldSearch.id === newSearch.id;
-		});
+		const areArraysEqual = arraysEqual(
+			form?.search.edges,
+			searchResults,
+			(oldSearch, newSearch) => {
+				return oldSearch.node.entity.id === newSearch.node.entity.id;
+			}
+		);
 
 		if (!areArraysEqual && searchElement.value.length >= 3) {
-			searchResults = form?.search ?? [];
+			searchResults = form?.search.edges ?? [];
 		}
 	});
 </script>
@@ -82,34 +87,36 @@
 		</p>
 	</form>
 
-	{#if searchResults.length > 0}
+	{#if searchResults?.length > 0}
 		<ul
 			class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
 			in:slide|local={{ duration: 280, easing: quintOut }}
 			out:slide|local={{ duration: 220, easing: quintOut }}
 		>
-			{#each searchResults as searchResult (searchResult.id)}
+			{#each searchResults as searchResult (searchResult.node.entity.id)}
+				{@const entity = searchResult.node.entity}
+				{@const titleType = entity.titleType.id}
 				<li class="w-fit text-center transition-transform hover:scale-105">
 					<a
-						href={`/${searchResult.type}/${searchResult.id}${searchResult.type === 'series' ? `/?season=1&episode=1` : ''}`}
+						href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=1&episode=1` : ''}`}
 					>
 						<img
-							src={searchResult.imageUrl}
+							src={entity.primaryImage.url}
 							loading="lazy"
-							alt={searchResult.title}
+							alt={entity.titleText.text}
 							class="h-112 w-xs rounded-lg object-cover"
-							class:hidden={!searchResult.imageUrl}
+							class:hidden={!entity.primaryImage.url}
 						/>
 						<div
-							class={`${searchResult.imageUrl && 'hidden'} flex h-112 w-78 items-center justify-center rounded-lg bg-white/5`}
+							class={`${entity.primaryImage.url && 'hidden'} flex h-112 w-78 items-center justify-center rounded-lg bg-white/5`}
 						>
 							<Icon.Linear.FilmTape class="fill-white/10" />
 						</div>
-						<h3 class="mt-1 text-center">{searchResult.title}</h3>
+						<h3 class="mt-1 text-center">{entity.titleText.text}</h3>
 					</a>
 					<p class="text-sm text-white/70">
-						{searchResult.type}
-						<span class:hidden={!searchResult.release}> ({searchResult.release})</span>
+						{entity.titleType.text}
+						<span class:hidden={!entity.releaseYear?.year}> ({entity.releaseYear?.year})</span>
 					</p>
 				</li>
 			{/each}

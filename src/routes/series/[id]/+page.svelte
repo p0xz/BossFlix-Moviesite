@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { SvelteMap } from 'svelte/reactivity';
 	import type { PageProps } from './$types';
@@ -38,7 +38,10 @@
 	}
 
 	function updateURL(season: number, episode: number) {
-		replaceState(`/series/${params.id}?season=${season}&episode=${episode}`, {});
+		goto(`/series/${params.id}?season=${season}&episode=${episode}`, {
+			replaceState: true,
+			noScroll: true
+		});
 	}
 
 	function updateEpisode(episode: number) {

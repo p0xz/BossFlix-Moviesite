@@ -3,6 +3,10 @@ export namespace Imdb {
 		aggregateRating: number;
 	}
 
+	interface primaryImage {
+		url: string;
+	}
+
 	interface originalTitleText {
 		text: string;
 	}
@@ -79,9 +83,7 @@ export namespace Imdb {
 	export interface Movie extends _MediaInfo {}
 
 	export interface Series extends _MediaInfo {
-		primaryImage: {
-			url: string;
-		};
+		primaryImage: primaryImage;
 		episodes: {
 			seasons?: Seasons[];
 			episodes: {
@@ -89,5 +91,35 @@ export namespace Imdb {
 				edges: EpisodeNode[];
 			};
 		};
+	}
+
+	export namespace Search {
+		export interface MainSearch {
+			pageInfo: pageInfo;
+			edges: Edge[];
+		}
+
+		export interface Edge {
+			node: {
+				entity: Entity;
+			};
+		}
+
+		interface Entity {
+			id: string;
+			titleText: originalTitleText;
+			releaseYear: ReleaseYear;
+			titleType: TitleType;
+			primaryImage: primaryImage;
+		}
+
+		interface ReleaseYear {
+			year: number;
+		}
+
+		interface TitleType {
+			id: 'tvSeries' | 'tvMiniSeries' | 'tvMovie' | 'movie';
+			text: string;
+		}
 	}
 }
