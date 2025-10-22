@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto, replaceState } from '$app/navigation';
+	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { SvelteMap } from 'svelte/reactivity';
 	import type { PageProps } from './$types';
@@ -9,21 +9,26 @@
 	let { data, params }: PageProps = $props();
 
 	const title = data?.series?.originalTitleText?.text ?? 'Untitled';
-	const searchParams = Object.fromEntries(page.url.searchParams.entries());
 	const year = data.series?.releaseDate?.year;
+	const searchParams = Object.fromEntries(page.url.searchParams.entries()) as {
+		season?: string;
+		episode?: string;
+	};
 
-	let nodes = new SvelteMap<number, typeof data.series.episodes.episodes.edges>();
+	type EdgeList = Imdb.Series['episodes']['episodes']['edges'];
+	let nodes = new SvelteMap<number, EdgeList>();
 
 	let entry = $state({
-		season: Number(searchParams?.season) || 1,
-		episode: Number(searchParams?.episode) || 1
+		season: Math.max(Number(searchParams?.season) || 1),
+		episode: Math.max(Number(searchParams?.episode) || 1)
 	});
 
-	let episodePlot = $derived(
-		nodes
-			.get(entry.season)
-			?.find((node) => node.node.series.episodeNumber.episodeNumber === entry.episode)?.node.plots
-			.edges[0].node.plotText.plainText
+	const seasonEdges = $derived(nodes.get(entry.season) ?? []);
+	const currentEpisodeNode = $derived(
+		seasonEdges.find((e) => e.node.series.episodeNumber.episodeNumber === entry.episode)?.node
+	);
+	const episodePlot = $derived(
+		currentEpisodeNode?.plots?.edges?.[0]?.node?.plotText?.plainText ?? ''
 	);
 
 	let open = $state(false);
@@ -32,26 +37,33 @@
 		return `https://vidsrc-embed.ru/embed/tv?imdb=${id}&season=${entry.season}&episode=${entry.episode}`;
 	}
 
-	function updateURL(season: number, episode: number, state: boolean = false) {
+	function updateURL(season: number, episode: number) {
 		replaceState(`/series/${params.id}?season=${season}&episode=${episode}`, {});
 	}
 
 	function updateEpisode(episode: number) {
+		if (entry.episode === episode) return;
 		entry.episode = episode;
 		updateURL(entry.season, entry.episode);
 	}
 
 	function updateSeason(season: number) {
+		if (entry.season === season) {
+			open = false;
+			return;
+		}
+
 		entry.season = season;
 		entry.episode = 1;
 		updateURL(entry.season, entry.episode);
+		open = false;
 
 		if (!nodes.has(season)) {
-			fetchEpisodeNode(season, entry.episode);
+			fetchSeason(season);
 		}
 	}
 
-	async function fetchEpisodeNode(season: number, episode: number) {
+	async function fetchSeason(season: number) {
 		const response = await fetch(`/api/series/?id=${params.id}&season=${season}`).then(
 			(res) => res.json() as Promise<{ episodes: Imdb.Series['episodes']['episodes'] }>
 		);
@@ -61,12 +73,10 @@
 
 	onMount(() => {
 		if (!searchParams.season || !searchParams.episode) {
-			updateURL(entry.season, entry.episode, true);
+			updateURL(entry.season, entry.episode);
 		}
 
 		nodes.set(entry.season, data.series.episodes.episodes.edges);
-
-		// console.log(nodes);
 	});
 </script>
 
@@ -188,7 +198,7 @@
 		<div class="col-span-3 mt-4">
 			<h3>Episodes:</h3>
 			<div class="mt-1 ml-0.5 flex flex-wrap gap-2">
-				{#each nodes.get(entry.season) as episodeNode (episodeNode.node.id)}
+				{#each seasonEdges as episodeNode (episodeNode.node.id)}
 					{@const episode = episodeNode.node}
 					{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
 					<button
