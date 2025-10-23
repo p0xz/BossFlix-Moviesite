@@ -5,45 +5,35 @@
 	import { type Imdb } from '$lib';
 
 	import { debounce, arraysEqual } from '$lib';
-	import { enhance } from '$app/forms';
+	import { applyAction, enhance } from '$app/forms';
 	import { Icon } from '$lib/icons';
 
+	let { form } = $props();
+
 	let formElement: HTMLFormElement;
-	let searchElement: HTMLInputElement;
-
-	let { form }: PageProps = $props();
-
 	let searchResults = $state<Imdb.Search.Edge[]>([]);
+
+	function sameEdges(a: Imdb.Search.Edge[], b: Imdb.Search.Edge[]) {
+		if (a === b) return true;
+		if (a.length !== b.length) return false;
+		for (let i = 0; i < a.length; i++) {
+			if (a[i].node.entity.id !== b[i].node.entity.id) return false;
+		}
+		return true;
+	}
 
 	const submitDebounced = debounce(() => formElement?.requestSubmit(), 300);
 
-	const handleInput = (event: Event) => {
-		const fieldValue = (event.currentTarget as HTMLInputElement).value.trim();
-
-		if (fieldValue.length < 3) {
+	function handleInput(event: Event) {
+		const currentTarget = event.currentTarget as HTMLInputElement;
+		const query = currentTarget.value.trim();
+		if (query.length < 3) {
 			searchResults = [];
 			return;
 		}
 
 		submitDebounced();
-	};
-
-	$effect(() => {
-		console.log(form?.search);
-		if (!form?.search) return;
-
-		const areArraysEqual = arraysEqual(
-			form?.search.edges,
-			searchResults,
-			(oldSearch, newSearch) => {
-				return oldSearch.node.entity.id === newSearch.node.entity.id;
-			}
-		);
-
-		if (!areArraysEqual && searchElement.value.length >= 3) {
-			searchResults = form?.search.edges ?? [];
-		}
-	});
+	}
 </script>
 
 <svelte:head>
@@ -56,15 +46,22 @@
 		bind:this={formElement}
 		method="POST"
 		use:enhance={() => {
-			return async ({ update }) => {
-				await update({ reset: false });
+			return async ({ result }) => {
+				if (result.type === 'success') {
+					const incoming = ((result.data as NonNullable<typeof form>)?.search?.edges ??
+						[]) as Imdb.Search.Edge[];
+					if (!sameEdges(searchResults, incoming)) {
+						searchResults = incoming;
+					}
+				}
+
+				await applyAction(result);
 			};
 		}}
 		class="flex flex-col items-center justify-center gap-y-2 py-6"
 	>
 		<!-- svelte-ignore a11y_autofocus -->
 		<input
-			bind:this={searchElement}
 			type="text"
 			name="media"
 			autocomplete="on"
@@ -89,26 +86,26 @@
 
 	{#if searchResults?.length > 0}
 		<ul
-			class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+			class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[repeat(4,20rem)]"
 			in:slide|local={{ duration: 280, easing: quintOut }}
 			out:slide|local={{ duration: 220, easing: quintOut }}
 		>
 			{#each searchResults as searchResult (searchResult.node.entity.id)}
 				{@const entity = searchResult.node.entity}
 				{@const titleType = entity.titleType.id}
-				<li class="w-fit text-center transition-transform hover:scale-105">
+				<li class="w-fit text-center wrap-break-word transition-transform hover:scale-105">
 					<a
 						href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=1&episode=1` : ''}`}
 					>
 						<img
-							src={entity.primaryImage.url}
+							src={entity.primaryImage?.url}
 							loading="lazy"
 							alt={entity.titleText.text}
 							class="h-112 w-xs rounded-lg object-cover"
-							class:hidden={!entity.primaryImage.url}
+							class:hidden={!entity.primaryImage?.url}
 						/>
 						<div
-							class={`${entity.primaryImage.url && 'hidden'} flex h-112 w-78 items-center justify-center rounded-lg bg-white/5`}
+							class={`${entity.primaryImage?.url && 'hidden'} flex h-112 w-78 items-center justify-center rounded-lg bg-white/5`}
 						>
 							<Icon.Linear.FilmTape class="fill-white/10" />
 						</div>

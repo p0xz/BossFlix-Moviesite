@@ -22,11 +22,17 @@ export const actions = {
 				$first: Int = 5
 				$after: String
 				$exact: Boolean = false
+				$titleTypes: [MainSearchTitleType!] = [TV, MOVIE]
 			) {
 				mainSearch(
 					first: $first
 					after: $after
-					options: { searchTerm: $searchTerm, isExactMatch: $exact, type: TITLE }
+					options: {
+						searchTerm: $searchTerm
+						isExactMatch: $exact
+						type: TITLE
+						titleSearchOptions: { type: $titleTypes }
+					}
 				) {
 					pageInfo {
 						hasNextPage
@@ -74,34 +80,7 @@ export const actions = {
 			},
 			body: JSON.stringify({ query, variables })
 		}).then((res) => res.json() as Promise<{ data: { mainSearch: Imdb.Search.MainSearch } }>);
-		console.dir(response, { depth: Infinity });
-
-		// response.d = response.d.filter((item) => {
-		// 	return (
-		// 		item.l.toLowerCase().includes(media.toLowerCase()) &&
-		// 		(item.qid === 'movie' || item.qid === 'tvSeries')
-		// 	);
-		// });
-
-		// const search =
-		// 	(response.d.map((item) => {
-		// 		return {
-		// 			id: item.id,
-		// 			title: item.l,
-		// 			rank: item.rank,
-		// 			imageUrl: item?.i?.imageUrl,
-		// 			type: item.qid === 'movie' ? 'movie' : item.qid === 'tvSeries' ? 'series' : 'unknown',
-		// 			release: item.y
-		// 		};
-		// 	}) as {
-		// 		id: string;
-		// 		title: string;
-		// 		rank: number;
-		// 		imageUrl?: string;
-		// 		type: 'movie' | 'series' | 'unknown';
-		// 		release?: number;
-		// 	}[]) || [];
-		// console.log(`[BossFlix] Searched for "${media}" and found ${search.length} results.`);
+		// console.dir(response, { depth: Infinity });
 
 		return { search: response.data.mainSearch };
 	}
