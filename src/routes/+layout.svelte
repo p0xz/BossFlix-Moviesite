@@ -15,10 +15,7 @@
 		property="og:title"
 		content="BossFlix - watch your favourite shows and movies free online"
 	/>
-	<meta
-		property="og:description"
-		content="Automate DMs, target the right audience, and grow your main profile on autopilot with DMify."
-	/>
+	<meta property="og:description" content="Watch your favourite shows and movies free online" />
 	<meta property="og:image" content="http://bossflix.org/og-image-bossflix.png" />
 
 	<!-- Twitter -->
