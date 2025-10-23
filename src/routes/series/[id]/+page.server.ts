@@ -113,7 +113,7 @@ export const load = (async ({ params, request }) => {
 		method: 'POST'
 	}).then((res) => res.json() as Promise<{ data: { title: Imdb.Series } }>);
 
-	console.dir(response, { depth: Infinity });
+	// console.dir(response, { depth: Infinity });
 
 	return {
 		series: response.data.title
