@@ -2,6 +2,8 @@
 
 Welcome to the BossFlix movie project, a sleek and modern web application powered by the Svelte framework.
 
+Website is also publicaly available on: <https://bossflix.org/>
+
 ## 🚀 Getting Started
 
 Clone this repository and install dependencies:
