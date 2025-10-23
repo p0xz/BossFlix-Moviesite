@@ -52,10 +52,17 @@ npm run build
 bun run build
 ```
 
+## TODO
+
+- Add filters for homepage search
+- Add local profiles which could potentionally transfer content marked as favorite
+- Add favorite content to profiles &#8593; ;D
+- Add option to show recommendation
+
 Check out your build locally with `npm run preview` or `bun run preview`.
 
 > 📌 Need to deploy? Grab an [adapter](https://svelte.dev/docs/kit/adapters) for your hosting platform.
 
 Get building! 🎥
 
-Edit by AI since I'm super lazy to write it myself right now 🫠​
+Edited by AI since I'm super lazy to write it myself right now, todo's are mine lol 🫠​

@@ -80,7 +80,6 @@ export const actions = {
 			},
 			body: JSON.stringify({ query, variables })
 		}).then((res) => res.json() as Promise<{ data: { mainSearch: Imdb.Search.MainSearch } }>);
-		// console.dir(response, { depth: Infinity });
 
 		return { search: response.data.mainSearch };
 	}
