@@ -79,9 +79,9 @@
 			}}
 			oninput={handleInput}
 			spellcheck="false"
-			class="min-h-12 w-sm rounded-lg bg-secondary px-4 ring-0 transition-colors duration-300 outline-none placeholder:font-semibold placeholder:text-white/60 focus:border-white max-md:max-w-[90%]"
+			class="min-h-13 w-sm rounded-lg border-2 border-[#727DA1]/20 bg-[#727DA1]/10 px-5 ring-0 outline-none placeholder:font-light placeholder:text-neutral-300 focus:border-white max-md:max-w-[90%]"
 		/>
-		<p class="text-sm text-white/70">
+		<p class="text-sm text-neutral-300">
 			we recommend using <a
 				href="https://chromewebstore.google.com/detail/adguard-adblocker/bgnkhhnnamicmpeenaelnjfhikgbkllg?hl=en"
 				target="_blank"
@@ -117,7 +117,7 @@
 						</div>
 						<h3 class="mt-1 text-center">{entity.titleText.text}</h3>
 					</a>
-					<p class="text-sm text-white/70">
+					<p class="text-sm text-[#C9D3EE]">
 						{entity.titleType.text}
 						<span class:hidden={!entity.releaseYear?.year}> ({entity.releaseYear?.year})</span>
 					</p>

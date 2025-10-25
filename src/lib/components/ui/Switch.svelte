@@ -17,14 +17,14 @@
 <button type="button" onclick={event}>
 	<label
 		for="autonext-check"
-		class="flex cursor-pointer items-center gap-x-2 rounded-md bg-secondary p-3 text-sm"
+		class="flex cursor-pointer items-center gap-x-2 rounded-md bg-brand-primary-150/15 p-3 text-sm"
 	>
 		<p>{@render children?.()}</p>
 
 		{#if condition}
-			<span class="font-medium text-accent-hover">On</span>
+			<span class="font-medium text-brand-primary-200">On</span>
 		{:else}
-			<span class="font-medium text-accent-error">Off</span>
+			<span class="font-medium text-brand-red-200">Off</span>
 		{/if}
 	</label>
 </button>

@@ -8,13 +8,38 @@
 	--font-Chewy: 'Chewy', system-ui;
 
 	/* Brand color */
-	--color-primary: #050b10;
-	--color-secondary: rgba(255, 255, 255, 0.1);
 	--border-color-primary: rgba(255, 255, 255, 0.3);
 	--color-accent: #4f42e2;
 	--color-accent-hover: #5447ec;
 	--color-accent-error: #df6f7f;
 	--text-color-accent-gray: rgba(255, 255, 255, 0.7);
+
+	--color-body: #0b0c14;
+	--color-surface: #0f101a;
+	--color-brand-primary-80: #beccfb;
+	--color-brand-primary-90: #98a4f7;
+	--color-brand-primary-100: #7c87f7;
+	--color-brand-primary-150: #727da1;
+	--color-brand-primary-200: #5b63d3;
+	--color-brand-primary-300: #4449a9;
+	--color-brand-blue-90: #4bb9e8;
+	--color-brand-blue-200: #007bb1;
+	--color-brand-green-90: #64c28d;
+	--color-brand-green-100: #00af79;
+	--color-brand-green-200: #00885d;
+	--color-brand-yellow-80: #e9c899;
+	--color-brand-yellow-90: #dd9c51;
+	--color-brand-yellow-100: #d57b16;
+	--color-brand-red-100: #e0687d;
+	--color-brand-red-200: #c03a5a;
+	--color-brand-red-300: #982542;
+	--color-brand-red-400: #6c1e30;
+	--color-brand-orange-90: #ec9070;
+	--color-brand-orange-100: #e56a4e;
+	--color-brand-orange-200: #c23e34;
+	--color-brand-violet-100: #a579e9;
+
+	--color-text-primary: #c9d3ee;
 
 	/* Animation / Ease */
 	--ease-snappy: cubic-bezier(0.2, 0, 0, 1);
@@ -26,6 +51,6 @@
 
 @layer base {
 	body {
-		@apply bg-primary font-Poppins text-white;
+		@apply bg-body font-Poppins text-white;
 	}
 }

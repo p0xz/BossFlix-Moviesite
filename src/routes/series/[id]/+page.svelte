@@ -106,7 +106,7 @@
 				episode: number;
 				currentTime: number;
 				duration: number;
-				// There are more events, but just added these for now since I don't see a point
+				// There are more events, but just added these for now since I don't see a point to add more
 				event: 'ended' | 'end' | 'finished' | 'pause' | 'paused' | 'fileend';
 			};
 		}
@@ -202,7 +202,9 @@
 					</g>
 				</svg>
 
-				<span class="inline-block w-16 rounded-r-sm bg-secondary py-0.5 text-lg font-semibold">
+				<span
+					class="inline-block w-16 rounded-r-sm bg-brand-primary-150/15 py-0.5 text-lg font-semibold"
+				>
 					{data.series.ratingsSummary.aggregateRating}
 				</span>
 			</div>
@@ -219,14 +221,14 @@
 				<div class="relative ml-0.5 w-64">
 					<button
 						onclick={() => (open = !open)}
-						class="w-full cursor-pointer rounded-md bg-secondary p-2 text-lg font-medium"
+						class="w-full cursor-pointer rounded-md bg-brand-primary-150/15 p-2 text-lg font-medium"
 					>
 						Season {entry.season}
 					</button>
 
 					{#if open}
 						<ul
-							class="absolute z-10 mt-1 max-h-36 w-full overflow-y-auto rounded-md bg-secondary shadow-lg"
+							class="absolute z-10 mt-1 max-h-36 w-full overflow-y-auto rounded-md bg-brand-primary-150/15 shadow-lg"
 							id="season_list"
 						>
 							{#each seasons as season (season.number)}
@@ -237,7 +239,7 @@
 											open = false;
 										}}
 										type="button"
-										class="w-full cursor-pointer p-3 hover:bg-zinc-800"
+										class="w-full cursor-pointer p-3 hover:bg-brand-primary-150/30"
 									>
 										Season {season.number}
 									</button>
@@ -263,7 +265,7 @@
 							updateEpisode(episodeNumber);
 							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 						}}
-						class={`size-10 cursor-pointer rounded ${episodeNumber === entry.episode ? 'bg-accent' : 'bg-secondary hover:bg-white/20'} text-center align-middle leading-10 font-semibold`}
+						class={`size-10 cursor-pointer rounded ${episodeNumber === entry.episode ? 'bg-brand-primary-200' : 'bg-brand-primary-150/15 hover:bg-brand-primary-150/30'} text-center align-middle leading-10 font-semibold`}
 					>
 						{episodeNumber}
 					</button>
