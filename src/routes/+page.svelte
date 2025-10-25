@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageProps } from './$types';
+	import type { Snapshot } from './$types';
 	import { slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { type Imdb } from '$lib';
@@ -10,6 +10,7 @@
 
 	let { form } = $props();
 
+	// oxlint-disable-next-line no-unassigned-vars
 	let formElement: HTMLFormElement;
 	let searchResults = $state<Imdb.Search.Edge[]>([]);
 
@@ -34,6 +35,11 @@
 
 		submitDebounced();
 	}
+
+	// export const snapshot: Snapshot<Imdb.Search.Edge[]> = {
+	// 	capture: () => searchResults,
+	// 	restore: (value) => (searchResults = value)
+	// };
 </script>
 
 <svelte:head>

@@ -5,6 +5,7 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import type { PageProps } from './$types';
 	import { type Imdb } from '$lib';
+	import Switch from '$lib/components/ui/Switch.svelte';
 
 	let { data, params }: PageProps = $props();
 
@@ -23,6 +24,14 @@
 		episode: Math.max(Number(searchParams?.episode) || 1)
 	});
 
+	let playerOptions = $state<{ autoPlay: 1 | 0; autoNext: 1 | 0 }>({
+		autoPlay: 1,
+		autoNext: 1
+	});
+
+	let iframeSrc = $state('');
+	let open = $state(false);
+
 	const seasonEdges = $derived(nodes.get(entry.season) ?? []);
 	const currentEpisodeNode = $derived(
 		seasonEdges.find((e) => e.node.series.episodeNumber.episodeNumber === entry.episode)?.node
@@ -30,11 +39,10 @@
 	const episodePlot = $derived(
 		currentEpisodeNode?.plots?.edges?.[0]?.node?.plotText?.plainText ?? ''
 	);
+	const seasons = $derived(data?.series?.episodes?.seasons ?? []);
 
-	let open = $state(false);
-
-	function streamingUrl(id: string) {
-		return `https://vidsrc-embed.ru/embed/tv?imdb=${id}&season=${entry.season}&episode=${entry.episode}`;
+	function buildMediaSource(id: string, season: number, episode: number) {
+		return `https://vidsrc-embed.ru/embed/tv?imdb=${id}&season=${season}&episode=${episode}&autonext=${playerOptions.autoNext}&autoplay=${playerOptions.autoPlay}`;
 	}
 
 	function updateURL(season: number, episode: number) {
@@ -79,9 +87,39 @@
 			updateURL(entry.season, entry.episode);
 		}
 
-		nodes.set(entry.season, data.series.episodes.episodes.edges);
+		const episodeEdges = data.series?.episodes?.episodes?.edges;
+		if (episodeEdges) nodes.set(entry.season, episodeEdges);
+
+		iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 	});
 </script>
+
+<svelte:window
+	onmessage={(event) => {
+		interface PlayerData {
+			type: 'PLAYER_EVENT';
+			data?: {
+				imdbId: string;
+				tmdbId: number;
+				type: string;
+				season: number;
+				episode: number;
+				currentTime: number;
+				duration: number;
+				// There are more events, but just added these for now since I don't see a point
+				event: 'ended' | 'end' | 'finished' | 'pause' | 'paused' | 'fileend';
+			};
+		}
+
+		const playerData = <PlayerData>event.data;
+
+		if (playerData?.type !== 'PLAYER_EVENT' || !playerData?.data) return;
+
+		if (playerData.data?.episode !== entry.episode && playerOptions.autoNext) {
+			updateEpisode(playerData.data?.episode || entry.episode);
+		}
+	}}
+/>
 
 <svelte:head>
 	<title>BossFlix • {title}</title>
@@ -93,20 +131,46 @@
 			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 		</a>
 	</header>
-	<div class="aspect-video w-full overflow-hidden rounded-lg bg-secondary">
+	<div class="aspect-video w-full overflow-hidden rounded-lg bg-black">
 		<iframe
 			title={`${title}${year ? ` (${year})` : ''} — player`}
-			src={streamingUrl(params.id)}
+			src={iframeSrc}
 			class="h-full w-full"
 			loading="lazy"
-			referrerpolicy="no-referrer"
+			referrerpolicy="origin"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
 		></iframe>
 	</div>
 
+	<div class="mt-2 text-center">
+		<Switch
+			condition={playerOptions.autoPlay === 1}
+			event={() => {
+				if (playerOptions.autoPlay === 1) playerOptions.autoPlay = 0;
+				else playerOptions.autoPlay = 1;
+
+				iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+			}}
+		>
+			Auto Play
+		</Switch>
+
+		<Switch
+			condition={playerOptions.autoNext === 1}
+			event={() => {
+				if (playerOptions.autoNext === 1) playerOptions.autoNext = 0;
+				else playerOptions.autoNext = 1;
+
+				iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+			}}
+		>
+			Auto Next
+		</Switch>
+	</div>
+
 	<div class="mt-4 ml-0.5 grid grid-cols-[auto_1fr_auto] gap-x-6">
-		<img src={data.series.primaryImage.url} alt={title} class="w-48 object-cover" />
+		<img src={data.series.primaryImage?.url} alt={title} class="w-48 object-cover" />
 		<div>
 			<h2 class="text-[clamp(1.25rem,3vw+1rem,2rem)] font-medium">{title}</h2>
 			<div class="flex text-center">
@@ -162,7 +226,7 @@
 			</p>
 		</div>
 		<div class="flex flex-col gap-4">
-			{#if data?.series.episodes.seasons}
+			{#if seasons}
 				<div class="relative ml-0.5 w-64">
 					<button
 						onclick={() => (open = !open)}
@@ -176,7 +240,7 @@
 							class="absolute z-10 mt-1 max-h-36 w-full overflow-y-auto rounded-md bg-secondary shadow-lg"
 							id="season_list"
 						>
-							{#each data.series.episodes.seasons as season (season.number)}
+							{#each seasons as season (season.number)}
 								<li>
 									<button
 										onclick={() => {

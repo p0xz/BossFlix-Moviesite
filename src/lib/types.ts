@@ -121,5 +121,22 @@ export namespace Imdb {
 			id: 'tvSeries' | 'tvMiniSeries' | 'tvMovie' | 'movie';
 			text: string;
 		}
+		export interface AdvancedTitleSearch {
+			edges: AdvancedTitleSearchEdge[];
+		}
+
+		export interface AdvancedTitleSearchEdge {
+			node: AdvancedTitleSearchNode;
+		}
+
+		export interface AdvancedTitleSearchNode {
+			title: {
+				id: string;
+				originalTitleText: originalTitleText;
+				releaseYear: ReleaseYear;
+				titleType: TitleType;
+				primaryImage: primaryImage;
+			};
+		}
 	}
 }

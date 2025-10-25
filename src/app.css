@@ -13,6 +13,7 @@
 	--border-color-primary: rgba(255, 255, 255, 0.3);
 	--color-accent: #4f42e2;
 	--color-accent-hover: #5447ec;
+	--color-accent-error: #df6f7f;
 	--text-color-accent-gray: rgba(255, 255, 255, 0.7);
 
 	/* Animation / Ease */
