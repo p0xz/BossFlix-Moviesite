@@ -116,7 +116,8 @@
 		if (playerData?.type !== 'PLAYER_EVENT' || !playerData?.data) return;
 
 		if (playerData.data?.episode !== entry.episode && playerOptions.autoNext) {
-			updateEpisode(playerData.data?.episode || entry.episode);
+			if (playerData.data?.season !== entry.season) updateSeason(playerData.data.season);
+			updateEpisode(playerData.data?.episode);
 		}
 	}}
 />
@@ -144,18 +145,6 @@
 	</div>
 
 	<div class="mt-2 text-center">
-		<Switch
-			condition={playerOptions.autoPlay === 1}
-			event={() => {
-				if (playerOptions.autoPlay === 1) playerOptions.autoPlay = 0;
-				else playerOptions.autoPlay = 1;
-
-				iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-			}}
-		>
-			Auto Play
-		</Switch>
-
 		<Switch
 			condition={playerOptions.autoNext === 1}
 			event={() => {
@@ -272,6 +261,7 @@
 						type="button"
 						onclick={() => {
 							updateEpisode(episodeNumber);
+							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 						}}
 						class={`size-10 cursor-pointer rounded ${episodeNumber === entry.episode ? 'bg-accent' : 'bg-secondary hover:bg-white/20'} text-center align-middle leading-10 font-semibold`}
 					>
