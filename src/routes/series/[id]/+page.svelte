@@ -236,6 +236,7 @@
 									<button
 										onclick={() => {
 											updateSeason(season.number);
+											iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 											open = false;
 										}}
 										type="button"
