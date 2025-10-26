@@ -92,7 +92,7 @@
 
 	{#if searchResults?.length > 0}
 		<ul
-			class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[repeat(4,20rem)]"
+			class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]"
 			in:slide|local={{ duration: 280, easing: quintOut }}
 			out:slide|local={{ duration: 220, easing: quintOut }}
 		>
@@ -107,7 +107,7 @@
 							src={entity.primaryImage?.url}
 							loading="lazy"
 							alt={entity.titleText.text}
-							class="h-112 w-xs rounded-lg object-cover"
+							class="mx-auto h-112 w-xs rounded-lg object-cover"
 							class:hidden={!entity.primaryImage?.url}
 						/>
 						<div

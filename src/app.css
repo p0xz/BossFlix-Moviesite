@@ -49,10 +49,23 @@
 	/* breakpoints */
 	--breakpoint-xs: 32.5rem; /* 520px */
 	--breakpoint-2md: 56rem; /* 896px */
+	--breakpoint-2lg: 88rem; /* 1408px */
 }
 
 @layer base {
 	body {
 		@apply bg-body font-Poppins text-white;
+	}
+}
+
+@media (min-width: 1921px) {
+	html {
+		font-size: 18px;
+	}
+}
+
+@media (min-width: 2560px) {
+	html {
+		font-size: 20px;
 	}
 }
