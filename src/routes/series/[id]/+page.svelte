@@ -132,7 +132,7 @@
 			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 		</a>
 	</header>
-	<div class="aspect-video w-full overflow-hidden rounded-lg bg-black">
+	<div class="aspect-video w-full overflow-hidden rounded-lg bg-surface">
 		<iframe
 			title={`${title}${year ? ` (${year})` : ''} — player`}
 			src={iframeSrc}
@@ -143,39 +143,79 @@
 			allowfullscreen
 		></iframe>
 	</div>
+	<div class="grid auto-rows-auto grid-cols-[auto_1fr_14.75rem] gap-x-4">
+		<div class="col-span-3 my-4 grid grid-cols-subgrid">
+			<div class="col-start-2 col-end-3 justify-self-end">
+				<Switch
+					condition={playerOptions.autoNext === 1}
+					event={() => {
+						if (playerOptions.autoNext === 1) playerOptions.autoNext = 0;
+						else playerOptions.autoNext = 1;
 
-	<div class="mt-2 text-center">
-		<Switch
-			condition={playerOptions.autoNext === 1}
-			event={() => {
-				if (playerOptions.autoNext === 1) playerOptions.autoNext = 0;
-				else playerOptions.autoNext = 1;
-
-				iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-			}}
-		>
-			Auto Next
-		</Switch>
-	</div>
-
-	<div class="mt-4 ml-0.5 grid grid-cols-[auto_1fr_auto] gap-x-6">
-		<img src={data.series.primaryImage?.url} alt={title} class="w-48 object-cover" />
-		<div>
-			<h2 class="text-[clamp(1.25rem,3vw+1rem,2rem)] font-medium">{title}</h2>
-			<div class="flex text-center">
-				<svg
-					id="imdb-logo"
-					class="ipc-logo"
-					xmlns="http://www.w3.org/2000/svg"
-					width="64"
-					height="32"
-					viewBox="0 0 64 32"
-					version="1.1"
+						iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+					}}
 				>
-					<!-- yellow background -->
-					<g fill="#F5C518">
-						<path
-							d="
+					Auto Next
+				</Switch>
+			</div>
+
+			{#if seasons}
+				<div class="ml-0. relative col-start-3 col-end-4">
+					<button
+						onclick={() => (open = !open)}
+						class="w-full cursor-pointer rounded-md bg-brand-primary-150/15 p-2 text-lg"
+					>
+						Season {entry.season}
+					</button>
+
+					{#if open}
+						<div
+							class="absolute z-20 mt-1 max-h-36 w-full overflow-y-auto rounded-md bg-surface shadow-lg"
+							id="season_list"
+						>
+							<ul class="bg-brand-primary-150/15">
+								{#each seasons as season (season.number)}
+									<li>
+										<button
+											onclick={() => {
+												updateSeason(season.number);
+												iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+												open = false;
+											}}
+											type="button"
+											class="w-full cursor-pointer p-3 hover:bg-brand-primary-150/30"
+										>
+											Season {season.number}
+										</button>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+				</div>
+			{:else}
+				<p class="text-lg">No seasons available.</p>
+			{/if}
+		</div>
+
+		<div class="mt-4 ml-0.5 contents">
+			<img src={data.series.primaryImage?.url} alt={title} class="w-48 object-cover" />
+			<div>
+				<h2 class="text-[clamp(1.25rem,3vw+1rem,2rem)] font-medium">{title}</h2>
+				<div class="flex text-center">
+					<svg
+						id="imdb-logo"
+						class="ipc-logo"
+						xmlns="http://www.w3.org/2000/svg"
+						width="64"
+						height="32"
+						viewBox="0 0 64 32"
+						version="1.1"
+					>
+						<!-- yellow background -->
+						<g fill="#F5C518">
+							<path
+								d="
 				M0,4
 				A4,4 0 0 1 4,0
 				H64
@@ -184,95 +224,60 @@
 				A4,4 0 0 1 0,28
 				Z
 			"
-						/>
-					</g>
+							/>
+						</g>
 
-					<!-- black IMDb text -->
-					<g fill="#000000" fill-rule="nonzero" transform="translate(8,7)">
-						<polygon points="0 18 5 18 5 0 0 0"></polygon>
-						<path
-							d="M15.6725178,0 L14.5534833,8.40846934 L13.8582008,3.83502426 C13.65661,2.37009263 13.4632474,1.09175121 13.278113,0 L7,0 L7,18 L11.2416347,18 L11.2580911,6.11380679 L13.0436094,18 L16.0633571,18 L17.7583653,5.8517865 L17.7707076,18 L22,18 L22,0 L15.6725178,0 Z"
-						></path>
-						<path
-							d="M24,18 L24,0 L31.8045586,0 C33.5693522,0 35,1.41994415 35,3.17660424 L35,14.8233958 C35,16.5777858 33.5716617,18 31.8045586,18 L24,18 Z M29.8322479,3.2395236 C29.6339219,3.13233348 29.2545158,3.08072342 28.7026524,3.08072342 L28.7026524,14.8914865 C29.4312846,14.8914865 29.8796736,14.7604764 30.0478195,14.4865461 C30.2159654,14.2165858 30.3021941,13.486105 30.3021941,12.2871637 L30.3021941,5.3078959 C30.3021941,4.49404499 30.272014,3.97397442 30.2159654,3.74371416 C30.1599168,3.5134539 30.0348852,3.34671372 29.8322479,3.2395236 Z"
-						></path>
-						<path
-							d="M44.4299079,4.50685823 L44.749518,4.50685823 C46.5447098,4.50685823 48,5.91267586 48,7.64486762 L48,14.8619906 C48,16.5950653 46.5451816,18 44.749518,18 L44.4299079,18 C43.3314617,18 42.3602746,17.4736618 41.7718697,16.6682739 L41.4838962,17.7687785 L37,17.7687785 L37,0 L41.7843263,0 L41.7843263,5.78053556 C42.4024982,5.01015739 43.3551514,4.50685823 44.4299079,4.50685823 Z M43.4055679,13.2842155 L43.4055679,9.01907814 C43.4055679,8.31433946 43.3603268,7.85185468 43.2660746,7.63896485 C43.1718224,7.42607505 42.7955881,7.2893916 42.5316822,7.2893916 C42.267776,7.2893916 41.8607934,7.40047379 41.7816216,7.58767002 L41.7816216,9.01907814 L41.7816216,13.4207851 L41.7816216,14.8074788 C41.8721037,15.0130276 42.2602358,15.1274059 42.5316822,15.1274059 C42.8031285,15.1274059 43.1982131,15.0166981 43.281155,14.8074788 C43.3640968,14.5982595 43.4055679,14.0880581 43.4055679,13.2842155 Z"
-						></path>
-					</g>
-				</svg>
+						<!-- black IMDb text -->
+						<g fill="#000000" fill-rule="nonzero" transform="translate(8,7)">
+							<polygon points="0 18 5 18 5 0 0 0"></polygon>
+							<path
+								d="M15.6725178,0 L14.5534833,8.40846934 L13.8582008,3.83502426 C13.65661,2.37009263 13.4632474,1.09175121 13.278113,0 L7,0 L7,18 L11.2416347,18 L11.2580911,6.11380679 L13.0436094,18 L16.0633571,18 L17.7583653,5.8517865 L17.7707076,18 L22,18 L22,0 L15.6725178,0 Z"
+							></path>
+							<path
+								d="M24,18 L24,0 L31.8045586,0 C33.5693522,0 35,1.41994415 35,3.17660424 L35,14.8233958 C35,16.5777858 33.5716617,18 31.8045586,18 L24,18 Z M29.8322479,3.2395236 C29.6339219,3.13233348 29.2545158,3.08072342 28.7026524,3.08072342 L28.7026524,14.8914865 C29.4312846,14.8914865 29.8796736,14.7604764 30.0478195,14.4865461 C30.2159654,14.2165858 30.3021941,13.486105 30.3021941,12.2871637 L30.3021941,5.3078959 C30.3021941,4.49404499 30.272014,3.97397442 30.2159654,3.74371416 C30.1599168,3.5134539 30.0348852,3.34671372 29.8322479,3.2395236 Z"
+							></path>
+							<path
+								d="M44.4299079,4.50685823 L44.749518,4.50685823 C46.5447098,4.50685823 48,5.91267586 48,7.64486762 L48,14.8619906 C48,16.5950653 46.5451816,18 44.749518,18 L44.4299079,18 C43.3314617,18 42.3602746,17.4736618 41.7718697,16.6682739 L41.4838962,17.7687785 L37,17.7687785 L37,0 L41.7843263,0 L41.7843263,5.78053556 C42.4024982,5.01015739 43.3551514,4.50685823 44.4299079,4.50685823 Z M43.4055679,13.2842155 L43.4055679,9.01907814 C43.4055679,8.31433946 43.3603268,7.85185468 43.2660746,7.63896485 C43.1718224,7.42607505 42.7955881,7.2893916 42.5316822,7.2893916 C42.267776,7.2893916 41.8607934,7.40047379 41.7816216,7.58767002 L41.7816216,9.01907814 L41.7816216,13.4207851 L41.7816216,14.8074788 C41.8721037,15.0130276 42.2602358,15.1274059 42.5316822,15.1274059 C42.8031285,15.1274059 43.1982131,15.0166981 43.281155,14.8074788 C43.3640968,14.5982595 43.4055679,14.0880581 43.4055679,13.2842155 Z"
+							></path>
+						</g>
+					</svg>
 
-				<span
-					class="inline-block w-16 rounded-r-sm bg-brand-primary-150/15 py-0.5 text-lg font-semibold"
-				>
-					{data.series.ratingsSummary.aggregateRating}
-				</span>
-			</div>
-			<p class="mt-2 ml-0.5">
-				{#if episodePlot?.length}
-					{episodePlot}
-				{:else}
-					<span class="loader mt-2 ml-12"></span>
-				{/if}
-			</p>
-		</div>
-		<div class="flex flex-col gap-4">
-			{#if seasons}
-				<div class="relative ml-0.5 w-64">
-					<button
-						onclick={() => (open = !open)}
-						class="w-full cursor-pointer rounded-md bg-brand-primary-150/15 p-2 text-lg font-medium"
+					<span
+						class="inline-block w-16 rounded-r-sm bg-brand-primary-150/15 py-0.5 text-lg font-semibold"
 					>
-						Season {entry.season}
-					</button>
-
-					{#if open}
-						<ul
-							class="absolute z-10 mt-1 max-h-36 w-full overflow-y-auto rounded-md bg-brand-primary-150/15 shadow-lg"
-							id="season_list"
-						>
-							{#each seasons as season (season.number)}
-								<li>
-									<button
-										onclick={() => {
-											updateSeason(season.number);
-											iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-											open = false;
-										}}
-										type="button"
-										class="w-full cursor-pointer p-3 hover:bg-brand-primary-150/30"
-									>
-										Season {season.number}
-									</button>
-								</li>
-							{/each}
-						</ul>
-					{/if}
+						{data.series.ratingsSummary.aggregateRating}
+					</span>
 				</div>
-			{:else}
-				<p class="text-lg">No seasons available.</p>
-			{/if}
-		</div>
+				<p class="mt-2 ml-0.5">
+					{#if episodePlot?.length}
+						{episodePlot}
+					{:else}
+						<span class="loader mt-2 ml-12"></span>
+					{/if}
+				</p>
+			</div>
 
-		<div class="col-span-3 mt-4">
-			<h3>Episodes:</h3>
-			<div class="mt-1 ml-0.5 flex flex-wrap gap-2">
-				{#each seasonEdges as episodeNode (episodeNode.node.id)}
-					{@const episode = episodeNode.node}
-					{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
-					<button
-						type="button"
-						onclick={() => {
-							updateEpisode(episodeNumber);
-							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-						}}
-						class={`size-10 cursor-pointer rounded ${episodeNumber === entry.episode ? 'bg-brand-primary-200' : 'bg-brand-primary-150/15 hover:bg-brand-primary-150/30'} text-center align-middle leading-10 font-semibold`}
-					>
-						{episodeNumber}
-					</button>
-				{:else}
-					<span class="loader mt-2 ml-4"></span>
-				{/each}
+			<div class="mr-0.5">
+				<h3 class="text-primary">Episodes:</h3>
+				<div class="mt-1 ml-0.5 flex flex-wrap gap-2">
+					{#each seasonEdges as episodeNode (episodeNode.node.id)}
+						{@const episode = episodeNode.node}
+						{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
+						{@const isEntryCurrentEpisode = episodeNumber === entry.episode}
+						<button
+							type="button"
+							onclick={() => {
+								updateEpisode(episodeNumber);
+								iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+							}}
+							class={`size-10 cursor-pointer rounded border-neutral-600 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850 ${isEntryCurrentEpisode ? 'bg-brand-primary-200' : 'bg-brand-primary-150/15 hover:ring-neutral-500'} text-center align-middle leading-10 font-semibold`}
+						>
+							{episodeNumber}
+						</button>
+					{:else}
+						<span class="loader mt-2 ml-4"></span>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</div>

@@ -38,8 +38,9 @@
 	--color-brand-orange-100: #e56a4e;
 	--color-brand-orange-200: #c23e34;
 	--color-brand-violet-100: #a579e9;
+	--color-neutral-850: #1f2433;
 
-	--color-text-primary: #c9d3ee;
+	--text-color-primary: #c9d3ee;
 
 	/* Animation / Ease */
 	--ease-snappy: cubic-bezier(0.2, 0, 0, 1);

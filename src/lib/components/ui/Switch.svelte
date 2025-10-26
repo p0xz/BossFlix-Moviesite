@@ -11,10 +11,10 @@
 		condition: boolean;
 	}
 
-	let { event, condition, children }: Props = $props();
+	let { event, condition, children, ...props }: Props = $props();
 </script>
 
-<button type="button" onclick={event}>
+<button type="button" onclick={event} {...props}>
 	<label
 		for="autonext-check"
 		class="flex cursor-pointer items-center gap-x-2 rounded-md bg-brand-primary-150/15 p-3 text-sm"
