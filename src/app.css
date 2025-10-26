@@ -47,7 +47,8 @@
 	--ease-fluid: cubic-bezier(0.3, 0, 0, 1);
 
 	/* breakpoints */
-	--breakpoint-xs: 32.5rem;
+	--breakpoint-xs: 32.5rem; /* 520px */
+	--breakpoint-2md: 56rem; /* 896px */
 }
 
 @layer base {

@@ -126,14 +126,14 @@
 	<title>BossFlix • {title}</title>
 </svelte:head>
 
-<div class="mx-auto my-4 flex min-h-screen w-[90%] flex-col justify-center md:w-3/4 2xl:w-1/2">
+<div class="mx-auto my-4 flex min-h-screen w-[90%] max-w-5xl flex-col justify-center">
 	<header class="self-center">
 		<a href="/">
 			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 		</a>
 	</header>
 	<div class="aspect-video w-full overflow-hidden rounded-lg bg-surface">
-		<iframe
+		<!-- <iframe
 			title={`${title}${year ? ` (${year})` : ''} — player`}
 			src={iframeSrc}
 			class="h-full w-full"
@@ -141,11 +141,13 @@
 			referrerpolicy="origin"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
-		></iframe>
+		></iframe> -->
 	</div>
-	<div class="grid auto-rows-auto grid-cols-[auto_1fr_14.75rem] gap-x-4">
-		<div class="col-span-3 my-4 grid grid-cols-subgrid">
-			<div class="col-start-2 col-end-3 justify-self-end">
+	<div class="grid grid-cols-[auto_1fr_auto] gap-x-4 sm:grid-cols-[auto_1fr_15rem]">
+		<div
+			class="col-span-full my-4 grid grid-cols-subgrid items-center gap-2 max-sm:grid-rows-2 sm:flex-row sm:justify-between"
+		>
+			<div class="text-center max-sm:col-span-full sm:text-end 2md:col-start-2">
 				<Switch
 					condition={playerOptions.autoNext === 1}
 					event={() => {
@@ -160,7 +162,7 @@
 			</div>
 
 			{#if seasons}
-				<div class="ml-0. relative col-start-3 col-end-4">
+				<div class="relative max-sm:col-span-full max-sm:row-start-2 max-sm:w-full sm:col-start-3">
 					<button
 						onclick={() => (open = !open)}
 						class="w-full cursor-pointer rounded-md bg-brand-primary-150/15 p-2 text-lg"
@@ -170,7 +172,7 @@
 
 					{#if open}
 						<div
-							class="absolute z-20 mt-1 max-h-36 w-full overflow-y-auto rounded-md bg-surface shadow-lg"
+							class="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded-md bg-surface shadow-md"
 							id="season_list"
 						>
 							<ul class="bg-brand-primary-150/15">
@@ -198,9 +200,15 @@
 			{/if}
 		</div>
 
-		<div class="mt-4 ml-0.5 contents">
-			<img src={data.series.primaryImage?.url} alt={title} class="w-48 object-cover" />
-			<div>
+		<div
+			class="grid grid-cols-subgrid gap-y-4 max-sm:col-span-3 max-sm:row-start-3 max-sm:mt-4 max-xs:grid-rows-[auto_auto] max-xs:gap-y-4 2md:col-span-2"
+		>
+			<img
+				src={data.series.primaryImage?.url}
+				alt={title}
+				class="w-48 object-cover max-2md:order-2 max-2md:mt-4 max-sm:col-start-1 max-sm:mt-0 max-xs:row-start-2"
+			/>
+			<div class="max-xs:col-span-full">
 				<h2 class="text-[clamp(1.25rem,3vw+1rem,2rem)] font-medium">{title}</h2>
 				<div class="flex text-center">
 					<svg
@@ -256,34 +264,35 @@
 					{/if}
 				</p>
 			</div>
+		</div>
 
-			<div class="mr-0.5">
-				<h3 class="text-primary">Episodes:</h3>
-				<div class="mt-1 ml-0.5 flex flex-wrap gap-2">
-					{#each seasonEdges as episodeNode (episodeNode.node.id)}
-						{@const episode = episodeNode.node}
-						{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
-						{@const isEntryCurrentEpisode = episodeNumber === entry.episode}
-						<button
-							type="button"
-							onclick={() => {
-								updateEpisode(episodeNumber);
-								iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-							}}
-							class={`size-10 cursor-pointer rounded border-neutral-600 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850 ${isEntryCurrentEpisode ? 'bg-brand-primary-200' : 'bg-brand-primary-150/15 hover:ring-neutral-500'} text-center align-middle leading-10 font-semibold`}
-						>
-							{episodeNumber}
-						</button>
-					{:else}
-						<span class="loader mt-2 ml-4"></span>
-					{/each}
-				</div>
+		<!-- TODO: Add listing if Episodes reach certain threshold which would cause design to expand on Y-axis -->
+		<div class="col-start-1 max-sm:col-span-3 sm:col-start-3">
+			<h3 class="text-primary">Episodes:</h3>
+			<div class="mt-1 ml-0.5 flex flex-wrap gap-2">
+				{#each seasonEdges as episodeNode (episodeNode.node.id)}
+					{@const episode = episodeNode.node}
+					{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
+					{@const isEntryCurrentEpisode = episodeNumber === entry.episode}
+					<button
+						type="button"
+						onclick={() => {
+							updateEpisode(episodeNumber);
+							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+						}}
+						class={`size-10 cursor-pointer rounded border-neutral-600 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850 ${isEntryCurrentEpisode ? 'bg-brand-primary-200' : 'bg-brand-primary-150/15 hover:ring-neutral-500'} text-center align-middle leading-10 font-semibold`}
+					>
+						{episodeNumber}
+					</button>
+				{:else}
+					<span class="loader mt-2 ml-4"></span>
+				{/each}
 			</div>
 		</div>
 	</div>
 </div>
 
-<style>
+<style global>
 	#season_list::-webkit-scrollbar {
 		width: 8px;
 	}
