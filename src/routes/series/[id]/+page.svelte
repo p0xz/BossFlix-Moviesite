@@ -133,7 +133,7 @@
 		</a>
 	</header>
 	<div class="aspect-video w-full overflow-hidden rounded-lg bg-surface">
-		<!-- <iframe
+		<iframe
 			title={`${title}${year ? ` (${year})` : ''} — player`}
 			src={iframeSrc}
 			class="h-full w-full"
@@ -141,7 +141,7 @@
 			referrerpolicy="origin"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
-		></iframe> -->
+		></iframe>
 	</div>
 	<div class="grid grid-cols-[auto_1fr_auto] gap-x-4 sm:grid-cols-[auto_1fr_15rem]">
 		<div
