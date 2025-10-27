@@ -84,14 +84,14 @@
 	function updateSeason(season: number) {
 		if (entry.season === season) {
 			isSeasonMenuActive = false;
-			episodeChunk = 0;
 			return;
 		}
 
 		entry.season = season;
 		entry.episode = 1;
-		updateURL(entry.season, entry.episode);
+		episodeChunk = 0;
 		isSeasonMenuActive = false;
+		updateURL(entry.season, entry.episode);
 
 		if (!nodes.has(season)) {
 			fetchSeason(season);
@@ -203,7 +203,6 @@
 					{#if isSeasonMenuActive}
 						<div
 							class="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded-md bg-surface shadow-md"
-							use:clickOutside={() => (isSeasonMenuActive = false)}
 							id="season_list"
 						>
 							<ul class="bg-brand-primary-150/15">
@@ -213,7 +212,6 @@
 											onclick={() => {
 												updateSeason(season.number);
 												iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-												isSeasonMenuActive = false;
 											}}
 											type="button"
 											class="w-full cursor-pointer p-3 hover:bg-brand-primary-150/30"
@@ -320,7 +318,6 @@
 
 						{#if isEpisodeMenuActive}
 							<div
-								use:clickOutside={() => (isEpisodeMenuActive = false)}
 								class="absolute -left-0.5 z-20 max-h-44 w-full overflow-y-auto rounded-md bg-surface shadow-md"
 								id="season_list"
 							>
