@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -191,7 +191,9 @@
 			{#if seasons}
 				<div class="relative max-sm:col-span-full max-sm:row-start-2 max-sm:w-full sm:col-start-3">
 					<button
-						onclick={() => (isSeasonMenuActive = !isSeasonMenuActive)}
+						onclick={() => {
+							isSeasonMenuActive = !isSeasonMenuActive;
+						}}
 						type="button"
 						class="w-full cursor-pointer rounded-md bg-brand-primary-150/15 p-2 text-lg"
 					>
