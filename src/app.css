@@ -60,12 +60,12 @@
 
 @media (min-width: 1921px) {
 	html {
-		font-size: 18px;
+		font-size: 20px;
 	}
 }
 
 @media (min-width: 2560px) {
 	html {
-		font-size: 20px;
+		font-size: 22px;
 	}
 }

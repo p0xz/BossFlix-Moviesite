@@ -29,4 +29,35 @@ export function arraysEqual<T>(
 
 export function toBoolean(value: boolean | string | undefined): boolean {
 	return value == 'true';
-} 
+}
+
+export function truncate(value: string, threshold: number) {
+	return value.slice(0, threshold);
+}
+
+export function hasNestedArray(array: any[]) {
+	return array.every((a) => Array.isArray(a));
+}
+
+export function fixDigits(number: number, digits: number = 2, preverse: boolean = false): string {
+	if (number.toString().length >= digits && preverse) return number.toString();
+	let zeros = '';
+	for (let i = 0; i < digits; i++) zeros += '0';
+	return (zeros + number).slice(-digits);
+}
+
+export function clickOutside(node: HTMLElement, callback: () => void) {
+	function handleClick(event: MouseEvent) {
+		if (!node.contains(event.target as Node)) {
+			callback();
+		}
+	}
+
+	document.addEventListener('click', handleClick, true);
+
+	return {
+		destroy() {
+			document.removeEventListener('click', handleClick, true);
+		}
+	};
+}

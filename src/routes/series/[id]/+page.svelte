@@ -4,8 +4,9 @@
 	import { page } from '$app/state';
 	import { SvelteMap } from 'svelte/reactivity';
 	import type { PageProps } from './$types';
-	import { type Imdb } from '$lib';
+	import { clickOutside, fixDigits, hasNestedArray, type Imdb } from '$lib';
 	import Switch from '$lib/components/ui/Switch.svelte';
+	import { Icon } from '$lib/icons';
 
 	let { data, params }: PageProps = $props();
 
@@ -15,6 +16,7 @@
 		season?: string;
 		episode?: string;
 	};
+	const chunkLength = 30;
 
 	type EdgeList = Imdb.Series['episodes']['episodes']['edges'];
 	let nodes = new SvelteMap<number, EdgeList>();
@@ -30,11 +32,27 @@
 	});
 
 	let iframeSrc = $state('');
-	let open = $state(false);
+	let isSeasonMenuActive = $state(false);
 
-	const seasonEdges = $derived(nodes.get(entry.season) ?? []);
+	let isEpisodeMenuActive = $state(false);
+	let episodeChunk = $state(0);
+
+	const seasonEdges = $derived.by(() => {
+		const seasonNode = nodes.get(entry.season) ?? [];
+
+		if (seasonNode.length <= chunkLength) return seasonNode;
+
+		const chunks: (typeof seasonNode)[] = [];
+		for (let i = 0; i < seasonNode.length; i += chunkLength) {
+			chunks.push(seasonNode.slice(i, i + chunkLength));
+		}
+
+		return chunks;
+	});
+
 	const currentEpisodeNode = $derived(
-		seasonEdges.find((e) => e.node.series.episodeNumber.episodeNumber === entry.episode)?.node
+		seasonEdges.flat().find((e) => e.node.series.episodeNumber.episodeNumber === entry.episode)
+			?.node
 	);
 	const episodePlot = $derived(
 		currentEpisodeNode?.plots?.edges?.[0]?.node?.plotText?.plainText ?? ''
@@ -54,20 +72,26 @@
 
 	function updateEpisode(episode: number) {
 		if (entry.episode === episode) return;
+
+		if (Number.isInteger(entry.episode / chunkLength) && hasNestedArray(seasonEdges)) {
+			episodeChunk += 1;
+		}
+
 		entry.episode = episode;
 		updateURL(entry.season, entry.episode);
 	}
 
 	function updateSeason(season: number) {
 		if (entry.season === season) {
-			open = false;
+			isSeasonMenuActive = false;
+			episodeChunk = 0;
 			return;
 		}
 
 		entry.season = season;
 		entry.episode = 1;
 		updateURL(entry.season, entry.episode);
-		open = false;
+		isSeasonMenuActive = false;
 
 		if (!nodes.has(season)) {
 			fetchSeason(season);
@@ -88,7 +112,10 @@
 		}
 
 		const episodeEdges = data.series?.episodes?.episodes?.edges;
-		if (episodeEdges) nodes.set(entry.season, episodeEdges);
+		if (episodeEdges) {
+			nodes.set(entry.season, episodeEdges);
+			episodeChunk = Math.max(0, Math.floor((entry.episode - 1) / chunkLength));
+		}
 
 		iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 	});
@@ -126,7 +153,7 @@
 	<title>BossFlix • {title}</title>
 </svelte:head>
 
-<div class="mx-auto my-4 flex min-h-screen w-[90%] max-w-5xl flex-col justify-center">
+<div class="mx-auto flex min-h-screen w-[90%] max-w-5xl flex-col justify-center py-4">
 	<header class="self-center">
 		<a href="/">
 			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
@@ -164,15 +191,17 @@
 			{#if seasons}
 				<div class="relative max-sm:col-span-full max-sm:row-start-2 max-sm:w-full sm:col-start-3">
 					<button
-						onclick={() => (open = !open)}
+						onclick={() => (isSeasonMenuActive = !isSeasonMenuActive)}
+						type="button"
 						class="w-full cursor-pointer rounded-md bg-brand-primary-150/15 p-2 text-lg"
 					>
 						Season {entry.season}
 					</button>
 
-					{#if open}
+					{#if isSeasonMenuActive}
 						<div
 							class="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded-md bg-surface shadow-md"
+							use:clickOutside={() => (isSeasonMenuActive = false)}
 							id="season_list"
 						>
 							<ul class="bg-brand-primary-150/15">
@@ -182,7 +211,7 @@
 											onclick={() => {
 												updateSeason(season.number);
 												iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-												open = false;
+												isSeasonMenuActive = false;
 											}}
 											type="button"
 											class="w-full cursor-pointer p-3 hover:bg-brand-primary-150/30"
@@ -205,8 +234,9 @@
 		>
 			<img
 				src={data.series.primaryImage?.url}
+				draggable="false"
 				alt={title}
-				class="w-48 object-cover max-2md:order-2 max-2md:mt-4 max-sm:col-start-1 max-sm:mt-0 max-xs:row-start-2"
+				class="w-58 object-cover max-2md:order-2 max-2md:mt-4 max-sm:col-start-1 max-sm:mt-0 max-xs:row-start-2"
 			/>
 			<div class="max-xs:col-span-full">
 				<h2 class="text-[clamp(1.25rem,3vw+1rem,2rem)] font-medium">{title}</h2>
@@ -266,27 +296,93 @@
 			</div>
 		</div>
 
-		<!-- TODO: Add listing if Episodes reach certain threshold which would cause design to expand on Y-axis -->
 		<div class="col-start-1 max-sm:col-span-3 sm:col-start-3">
-			<h3 class="text-primary">Episodes:</h3>
+			<div class="relative mx-1">
+				<h3 class="text-primary">List of episodes:</h3>
+				{#if hasNestedArray(seasonEdges)}
+					{@const baseEpisodeRange = episodeChunk * chunkLength}
+					{@const episodeRange = `${baseEpisodeRange + 1}-${episodeChunk === 0 ? seasonEdges[episodeChunk]?.length || chunkLength : chunkLength + seasonEdges[episodeChunk]?.length || chunkLength}`}
+					<div>
+						<button
+							type="button"
+							onclick={() => (isEpisodeMenuActive = !isEpisodeMenuActive)}
+							aria-label="episodes"
+							class="flex cursor-pointer items-center gap-x-1 text-sm font-light text-primary"
+						>
+							EPS: {episodeRange}
+
+							<Icon.Linear.ArrowUp
+								class={`size-4 fill-neutral-300 transition-transform ${isEpisodeMenuActive && 'rotate-180'}`}
+							/>
+						</button>
+
+						{#if isEpisodeMenuActive}
+							<div
+								use:clickOutside={() => (isEpisodeMenuActive = false)}
+								class="absolute -left-0.5 z-20 max-h-44 w-full overflow-y-auto rounded-md bg-surface shadow-md"
+								id="season_list"
+							>
+								<ul class="bg-brand-primary-150/15">
+									{#each seasonEdges as episodesNode, index}
+										{@const nodeLength = episodesNode.length}
+										<li>
+											<button
+												onclick={() => {
+													isEpisodeMenuActive = false;
+													episodeChunk = index;
+												}}
+												type="button"
+												class="w-full cursor-pointer p-3 hover:bg-brand-primary-150/30"
+											>
+												EPS: {`${fixDigits(index * chunkLength + 1)}-${index === 0 ? nodeLength : chunkLength + nodeLength}`}
+											</button>
+										</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
+					</div>
+				{/if}
+			</div>
+
 			<div class="mt-1 ml-0.5 flex flex-wrap gap-2">
-				{#each seasonEdges as episodeNode (episodeNode.node.id)}
-					{@const episode = episodeNode.node}
-					{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
-					{@const isEntryCurrentEpisode = episodeNumber === entry.episode}
-					<button
-						type="button"
-						onclick={() => {
-							updateEpisode(episodeNumber);
-							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-						}}
-						class={`size-10 cursor-pointer rounded border-neutral-600 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850 ${isEntryCurrentEpisode ? 'bg-brand-primary-200' : 'bg-brand-primary-150/15 hover:ring-neutral-500'} text-center align-middle leading-10 font-semibold`}
-					>
-						{episodeNumber}
-					</button>
+				{#if hasNestedArray(seasonEdges)}
+					{#each seasonEdges[episodeChunk] as episodeNode (episodeNode.node.id)}
+						{@const episode = episodeNode.node}
+						{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
+						{@const isEntryCurrentEpisode = episodeNumber === entry.episode}
+						<button
+							type="button"
+							onclick={() => {
+								updateEpisode(episodeNumber);
+								iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+							}}
+							class={`size-10 cursor-pointer rounded border-neutral-600 text-primary/40 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850 ${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : 'bg-brand-primary-150/15 hover:ring-neutral-500'} text-center align-middle leading-10 font-semibold`}
+						>
+							{episodeNumber}
+						</button>
+					{:else}
+						<span class="loader mt-2 ml-4"></span>
+					{/each}
 				{:else}
-					<span class="loader mt-2 ml-4"></span>
-				{/each}
+					{#each seasonEdges as episodeNode (episodeNode.node.id)}
+						{@const episode = episodeNode.node}
+						{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
+						{@const isEntryCurrentEpisode = episodeNumber === entry.episode}
+						<button
+							type="button"
+							onclick={() => {
+								updateEpisode(episodeNumber);
+								iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+							}}
+							class={`size-10 cursor-pointer rounded border-neutral-600 text-primary/40 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850 ${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : 'bg-brand-primary-150/15 hover:ring-neutral-500'} text-center align-middle leading-10 font-semibold`}
+						>
+							{episodeNumber}
+						</button>
+					{:else}
+						<span class="loader mt-2 ml-4"></span>
+					{/each}
+				{/if}
 			</div>
 		</div>
 	</div>

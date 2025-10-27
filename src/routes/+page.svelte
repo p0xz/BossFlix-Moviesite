@@ -47,7 +47,7 @@
 </svelte:head>
 
 <header class="flex min-h-screen flex-col items-center justify-center py-8">
-	<h1 class="justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
+	<h1 class="font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 	<form
 		bind:this={formElement}
 		method="POST"
@@ -64,7 +64,7 @@
 				await applyAction(result);
 			};
 		}}
-		class="flex flex-col items-center justify-center gap-y-2 py-6"
+		class="relative flex flex-col items-center justify-center gap-y-2 py-6"
 	>
 		<!-- svelte-ignore a11y_autofocus -->
 		<input
@@ -79,14 +79,11 @@
 			}}
 			oninput={handleInput}
 			spellcheck="false"
-			class="min-h-13 w-sm rounded-lg border-2 border-[#727DA1]/20 bg-[#727DA1]/10 px-5 ring-0 outline-none placeholder:font-light placeholder:text-neutral-300 focus:border-white max-md:max-w-[90%]"
+			class="min-h-13 w-sm rounded-lg border-2 border-brand-primary-150/20 bg-brand-primary-150/10 px-5 ring-0 outline-none placeholder:font-light placeholder:text-neutral-300 focus:border-white max-md:max-w-[90%]"
 		/>
-		<p class="text-sm text-neutral-300">
-			we recommend using <a
-				href="https://chromewebstore.google.com/detail/adguard-adblocker/bgnkhhnnamicmpeenaelnjfhikgbkllg?hl=en"
-				target="_blank"
-				class="underline">ADGUARD</a
-			> extension
+
+		<p class="text-sm text-primary/80">
+			we recommend checking <a href="/info" class="text-primary underline">INFO</a>
 		</p>
 	</form>
 
