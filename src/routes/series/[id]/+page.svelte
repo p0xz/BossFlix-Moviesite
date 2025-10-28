@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { SvelteMap } from 'svelte/reactivity';
 	import type { PageProps } from './$types';
-	import { clickOutside, fixDigits, type Imdb } from '$lib';
+	import { fixDigits, truncate, type Imdb } from '$lib';
 	import Switch from '$lib/components/ui/Switch.svelte';
 	import { Icon } from '$lib/icons';
 
@@ -202,6 +202,19 @@
 						onclick={() => {
 							isSeasonMenuActive = !isSeasonMenuActive;
 						}}
+						{@attach (element) => {
+							function handleClick(event: MouseEvent) {
+								if (!element.contains(event.target as Node)) {
+									isSeasonMenuActive = false;
+								}
+							}
+
+							document.addEventListener('click', handleClick);
+
+							return () => {
+								document.removeEventListener('click', handleClick);
+							};
+						}}
 						type="button"
 						class="w-full cursor-pointer rounded-md bg-brand-primary-150/15 p-2 text-lg"
 					>
@@ -250,11 +263,8 @@
 				<h2 class="text-[clamp(1.25rem,3vw+1rem,2rem)] font-medium">{title}</h2>
 				<div class="flex text-center">
 					<svg
-						id="imdb-logo"
-						class="ipc-logo"
+						class="h-8 w-16"
 						xmlns="http://www.w3.org/2000/svg"
-						width="64"
-						height="32"
 						viewBox="0 0 64 32"
 						version="1.1"
 					>
@@ -296,7 +306,7 @@
 				</div>
 				<p class="mt-2 ml-0.5">
 					{#if episodePlot?.length}
-						{episodePlot}
+						{truncate(episodePlot, 450)}
 					{:else}
 						<span class="loader mt-2 ml-12"></span>
 					{/if}
@@ -312,6 +322,19 @@
 						<button
 							type="button"
 							onclick={() => (isEpisodeMenuActive = !isEpisodeMenuActive)}
+							{@attach (element) => {
+								function handleClick(event: MouseEvent) {
+									if (!element.contains(event.target as Node)) {
+										isEpisodeMenuActive = false;
+									}
+								}
+
+								document.addEventListener('click', handleClick);
+
+								return () => {
+									document.removeEventListener('click', handleClick);
+								};
+							}}
 							aria-label="episodes"
 							aria-expanded={isEpisodeMenuActive}
 							class="flex cursor-pointer items-center gap-x-1 text-sm font-light text-primary"
@@ -363,8 +386,8 @@
 							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 						}}
 						class={`size-10 cursor-pointer rounded border-neutral-600 text-primary/40 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850
-					${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : 'bg-brand-primary-150/15 hover:ring-neutral-500'}
-					text-center align-middle leading-10 font-semibold`}
+						${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : 'bg-brand-primary-150/15 hover:ring-neutral-500'}
+						text-center align-middle leading-10 font-semibold`}
 					>
 						{episodeNumber}
 					</button>

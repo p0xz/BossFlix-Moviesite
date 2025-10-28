@@ -32,7 +32,8 @@ export function toBoolean(value: boolean | string | undefined): boolean {
 }
 
 export function truncate(value: string, threshold: number) {
-	return value.slice(0, threshold);
+	const sugar = value.length > threshold ? '...' : '';
+	return value.slice(0, threshold).trim() + sugar;
 }
 
 export function hasNestedArray<T>(array: T[] | T[][]): array is T[][] {
