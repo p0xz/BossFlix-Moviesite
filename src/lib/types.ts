@@ -57,7 +57,7 @@ export namespace Imdb {
 		}[];
 	}
 
-	interface EpisodeNode {
+	export interface EpisodeNode {
 		node: {
 			id: string;
 			titleText: {

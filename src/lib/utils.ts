@@ -35,8 +35,8 @@ export function truncate(value: string, threshold: number) {
 	return value.slice(0, threshold);
 }
 
-export function hasNestedArray(array: any[]) {
-	return array.every((a) => Array.isArray(a));
+export function hasNestedArray<T>(array: T[] | T[][]): array is T[][] {
+	return Array.isArray(array) && array.length > 0 && Array.isArray(array[0]);
 }
 
 export function fixDigits(number: number, digits: number = 2, preverse: boolean = false): string {

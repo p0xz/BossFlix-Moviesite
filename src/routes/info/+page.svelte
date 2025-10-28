@@ -4,6 +4,8 @@
 	let { data }: PageProps = $props();
 </script>
 
-<div>
-	<h1 class="pt-8 text-center font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
+<div class="text-center">
+	<h1 class="pt-8 font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
+
+	<p class="text-primary">Coming soon</p>
 </div>
