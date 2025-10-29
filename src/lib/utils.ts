@@ -1,3 +1,5 @@
+import type { Attachment } from 'svelte/attachments';
+
 export function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number) {
 	let timeout: ReturnType<typeof setTimeout>;
 
@@ -47,18 +49,18 @@ export function fixDigits(number: number, digits: number = 2, preverse: boolean 
 	return (zeros + number).slice(-digits);
 }
 
-export function clickOutside(node: HTMLElement, callback: () => void) {
-	function handleClick(event: MouseEvent) {
-		if (!node.contains(event.target as Node)) {
-			callback();
+export function outsideClick(callback: () => void): Attachment {
+	return (element) => {
+		function handleClick(event: MouseEvent) {
+			if (!element.contains(event.target as Node)) {
+				callback();
+			}
 		}
-	}
 
-	document.addEventListener('click', handleClick);
+		document.addEventListener('click', handleClick);
 
-	return {
-		destroy() {
+		return () => {
 			document.removeEventListener('click', handleClick);
-		}
+		};
 	};
 }

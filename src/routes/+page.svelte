@@ -1,10 +1,9 @@
 <script lang="ts">
-	import type { Snapshot } from './$types';
 	import { slide } from 'svelte/transition';
-	import { quintOut } from 'svelte/easing';
+	import { quintIn, quintOut } from 'svelte/easing';
 	import { type Imdb } from '$lib';
 
-	import { debounce, arraysEqual } from '$lib';
+	import { debounce } from '$lib';
 	import { applyAction, enhance } from '$app/forms';
 	import { Icon } from '$lib/icons';
 
@@ -13,6 +12,8 @@
 	// oxlint-disable-next-line no-unassigned-vars
 	let formElement: HTMLFormElement;
 	let searchResults = $state<Imdb.Search.Edge[]>([]);
+
+	const REQUIRED_LENGTH_TO_SUBMIT = 2;
 
 	function sameEdges(a: Imdb.Search.Edge[], b: Imdb.Search.Edge[]) {
 		if (a === b) return true;
@@ -28,25 +29,20 @@
 	function handleInput(event: Event) {
 		const currentTarget = event.currentTarget as HTMLInputElement;
 		const query = currentTarget.value.trim();
-		if (query.length < 3) {
+		if (query.length < REQUIRED_LENGTH_TO_SUBMIT) {
 			searchResults = [];
 			return;
 		}
 
 		submitDebounced();
 	}
-
-	// export const snapshot: Snapshot<Imdb.Search.Edge[]> = {
-	// 	capture: () => searchResults,
-	// 	restore: (value) => (searchResults = value)
-	// };
 </script>
 
 <svelte:head>
 	<title>BossFlix • Home</title>
 </svelte:head>
 
-<header class="flex min-h-screen flex-col items-center justify-center py-8">
+<div class="flex min-h-screen flex-col items-center justify-center py-8">
 	<h1 class="font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 	<form
 		bind:this={formElement}
@@ -90,8 +86,8 @@
 	{#if searchResults?.length > 0}
 		<ul
 			class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]"
-			in:slide|local={{ duration: 280, easing: quintOut }}
-			out:slide|local={{ duration: 220, easing: quintOut }}
+			in:slide={{ duration: 280, easing: quintIn }}
+			out:slide={{ duration: 220, easing: quintOut }}
 		>
 			{#each searchResults as searchResult (searchResult.node.entity.id)}
 				{@const entity = searchResult.node.entity}
@@ -122,4 +118,4 @@
 			{/each}
 		</ul>
 	{/if}
-</header>
+</div>

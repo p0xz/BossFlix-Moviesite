@@ -38,7 +38,7 @@ export namespace Imdb {
 	}
 
 	// tv series specific
-	interface Seasons {
+	export interface Seasons {
 		number: number;
 	}
 

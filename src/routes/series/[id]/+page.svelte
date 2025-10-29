@@ -1,15 +1,21 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { slide } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { fixDigits, truncate, type Imdb } from '$lib';
-	import { Icon } from '$lib/icons';
 	import Switch from '$lib/components/ui/Switch.svelte';
 	import ImdbLogo from '$lib/components/ui/ImdbLogo.svelte';
-	import type { Attachment } from 'svelte/attachments';
+	import SeasonMenu from '$lib/components/ui/SeasonMenu.svelte';
+	import EpisodesMenu from '$lib/components/ui/EpisodesMenu.svelte';
+	import Loader from '$lib/components/ui/Loader.svelte';
+
+	interface PlayerOptions {
+		autoPlay: 1 | 0;
+		autoNext: 1 | 0;
+		autoSubtitles: string;
+	}
 
 	let { data, params }: PageProps = $props();
 
@@ -28,9 +34,10 @@
 		season: Math.max(Number(searchParams?.season) || 1),
 		episode: Math.max(Number(searchParams?.episode) || 1)
 	});
-	let playerOptions = $state<{ autoPlay: 1 | 0; autoNext: 1 | 0 }>({
+	let playerOptions = $state<PlayerOptions>({
 		autoPlay: 1,
-		autoNext: 1
+		autoNext: 1,
+		autoSubtitles: ''
 	});
 
 	let iframeSrc = $state('');
@@ -71,7 +78,7 @@
 	);
 
 	function buildMediaSource(id: string, season: number, episode: number) {
-		return `https://vidsrc-embed.ru/embed/tv?imdb=${id}&season=${season}&episode=${episode}&autonext=${playerOptions.autoNext}&autoplay=${playerOptions.autoPlay}`;
+		return `https://vidsrc-embed.ru/embed/tv?imdb=${id}&season=${season}&episode=${episode}&autonext=${playerOptions.autoNext}&autoplay=${playerOptions.autoPlay}${playerOptions.autoSubtitles ? `&ds_lang=${playerOptions.autoSubtitles}` : ''}`;
 	}
 
 	function updateURL(season: number, episode: number) {
@@ -115,22 +122,6 @@
 		);
 
 		nodes.set(season, response.episodes.edges);
-	}
-
-	function outsideClick(callback: () => void): Attachment {
-		return (element) => {
-			function handleClick(event: MouseEvent) {
-				if (!element.contains(event.target as Node)) {
-					callback();
-				}
-			}
-
-			document.addEventListener('click', handleClick);
-
-			return () => {
-				document.removeEventListener('click', handleClick);
-			};
-		};
 	}
 
 	onMount(() => {
@@ -203,6 +194,23 @@
 		>
 			<div class="text-center max-sm:col-span-full sm:text-end 2md:col-start-2">
 				<Switch
+					condition={Boolean(playerOptions.autoSubtitles.length)}
+					event={() => {
+						if (playerOptions.autoSubtitles.length) playerOptions.autoSubtitles = '';
+						else playerOptions.autoSubtitles = 'en';
+
+						iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+					}}
+				>
+					Auto Subtitles
+					<span
+						class="text-brand-yellow-100"
+						title="Due to issues that are caused by bad timestamped subtitles this feature is marked as an experimental"
+					>
+						(experimental)
+					</span>
+				</Switch>
+				<Switch
 					condition={playerOptions.autoNext === 1}
 					event={() => {
 						if (playerOptions.autoNext === 1) playerOptions.autoNext = 0;
@@ -215,49 +223,15 @@
 				</Switch>
 			</div>
 
-			{#if seasons}
-				<div class="relative max-sm:col-span-full max-sm:row-start-2 max-sm:w-full sm:col-start-3">
-					<button
-						onclick={() => {
-							isSeasonMenuActive = !isSeasonMenuActive;
-						}}
-						{@attach outsideClick(() => {
-							isSeasonMenuActive = false;
-						})}
-						type="button"
-						class="w-full cursor-pointer rounded-md bg-brand-primary-150/15 p-2 text-lg"
-					>
-						Season {entry.season}
-					</button>
-
-					{#if isSeasonMenuActive}
-						<div
-							class="absolute z-20 mt-2 max-h-44 w-full overflow-y-auto rounded-md bg-surface shadow-md"
-							id="season_list"
-							transition:slide
-						>
-							<ul class="bg-brand-primary-150/15">
-								{#each seasons as season (season.number)}
-									<li>
-										<button
-											onclick={() => {
-												updateSeason(season.number);
-												iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-											}}
-											type="button"
-											class="w-full cursor-pointer p-3 hover:bg-brand-primary-150/30"
-										>
-											Season {season.number}
-										</button>
-									</li>
-								{/each}
-							</ul>
-						</div>
-					{/if}
-				</div>
-			{:else}
-				<p class="text-lg">No seasons available.</p>
-			{/if}
+			<SeasonMenu
+				{seasons}
+				bind:isMenuOpen={isSeasonMenuActive}
+				currentSeason={entry.season}
+				onSeasonSelect={(season) => {
+					updateSeason(season);
+					iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+				}}
+			/>
 		</div>
 
 		<div
@@ -283,7 +257,7 @@
 					{#if episodePlot?.length}
 						{truncate(episodePlot, 450)}
 					{:else}
-						<span class="loader mt-2 ml-12"></span>
+						<Loader class="mt-2 ml-12" />
 					{/if}
 				</p>
 			</div>
@@ -292,51 +266,16 @@
 		<div class="col-start-1 max-sm:col-span-3 sm:col-start-3">
 			<div class="relative mx-1">
 				<h3 class="text-primary">List of episodes:</h3>
-				{#if totalEpisodes > CHUNK}
-					<div>
-						<button
-							type="button"
-							onclick={() => (isEpisodeMenuActive = !isEpisodeMenuActive)}
-							{@attach outsideClick(() => {
-								isEpisodeMenuActive = false;
-							})}
-							aria-label="episodes"
-							aria-expanded={isEpisodeMenuActive}
-							class="flex cursor-pointer items-center gap-x-1 text-sm font-light text-primary"
-						>
-							EPS: {currentRangeLabel}
-
-							<Icon.Linear.ArrowUp
-								class={`size-4 fill-neutral-300 transition-transform ${isEpisodeMenuActive && 'rotate-180'}`}
-							/>
-						</button>
-
-						{#if isEpisodeMenuActive}
-							<div
-								class="absolute -left-0.5 z-10 max-h-44 w-full overflow-y-auto rounded-md bg-surface shadow-md"
-								id="season_list"
-								transition:slide
-							>
-								<ul class="bg-brand-primary-150/15">
-									{#each episodeRanges as range, index}
-										<li>
-											<button
-												onclick={() => {
-													isEpisodeMenuActive = false;
-													episodeChunk = index;
-												}}
-												type="button"
-												class="w-full cursor-pointer p-3 hover:bg-brand-primary-150/30"
-											>
-												EPS: {range}
-											</button>
-										</li>
-									{/each}
-								</ul>
-							</div>
-						{/if}
-					</div>
-				{/if}
+				<EpisodesMenu
+					bind:isMenuOpen={isEpisodeMenuActive}
+					threshold={CHUNK}
+					{totalEpisodes}
+					currentRange={currentRangeLabel}
+					ranges={episodeRanges}
+					onRangeSelect={(idx) => {
+						episodeChunk = idx;
+					}}
+				/>
 			</div>
 
 			<div class="mt-1 ml-0.5 flex flex-wrap gap-2">
@@ -358,7 +297,7 @@
 						{episodeNumber}
 					</button>
 				{:else}
-					<span class="loader mt-2 ml-4"></span>
+					<Loader class="mt-2 ml-4" />
 				{/each}
 			</div>
 		</div>
@@ -366,19 +305,6 @@
 </div>
 
 <style global>
-	#season_list::-webkit-scrollbar {
-		width: 8px;
-	}
-
-	#season_list::-webkit-scrollbar-thumb {
-		background-color: rgba(255, 255, 255, 0.2);
-		border-radius: 4px;
-	}
-
-	#season_list::-webkit-scrollbar-thumb:hover {
-		background-color: rgba(255, 255, 255, 0.3);
-	}
-
 	.loader {
 		width: 2rem;
 		height: 2rem;

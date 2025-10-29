@@ -1,5 +1,7 @@
 <script lang="ts">
-	let { ...props } = $props();
+	import type { HTMLAttributes } from 'svelte/elements';
+
+	let { ...props }: HTMLAttributes<SVGElement> = $props();
 </script>
 
 <svg {...props} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
