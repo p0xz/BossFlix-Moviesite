@@ -61,7 +61,7 @@ bun run build
 ## Completed
 
 - [x]
-- [ ]
+- [x] Test
 
 Check out your build locally with `npm run preview` or `bun run preview`.
 
