@@ -1,8 +1,6 @@
 # 🎬 BossFlix Movie Project
 
-Welcome to the BossFlix movie project, a sleek and modern web application powered by the Svelte framework.
-
-Website is also publicly available on: <https://bossflix.org/>
+Website is publicly available on: <https://bossflix.org/>
 
 ## 🚀 Getting Started
 
@@ -62,7 +60,8 @@ bun run build
 
 ## Completed
 
-- Test [x]
+- [x]
+- [ ]
 
 Check out your build locally with `npm run preview` or `bun run preview`.
 
