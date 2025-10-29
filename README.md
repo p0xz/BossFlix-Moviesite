@@ -58,6 +58,11 @@ bun run build
 - Add local profiles which could potentionally transfer content marked as favorite
 - Add favorite content to profiles &#8593; ;D
 - Add option to show recommendation
+- Add settings with default subtitles language option
+
+## Completed
+
+- Test [x]
 
 Check out your build locally with `npm run preview` or `bun run preview`.
 
