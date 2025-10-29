@@ -52,16 +52,14 @@ bun run build
 
 ## TODO
 
-- Add filters for homepage search
-- Add local profiles which could potentionally transfer content marked as favorite
-- Add favorite content to profiles &#8593; ;D
-- Add option to show recommendation
-- Add settings with default subtitles language option
-
-## Completed
-
-- [x]
-- [x] Test
+- [ ] Add filters for homepage search
+- [ ] Add local profiles which could potentionally transfer content marked as favorite
+- [ ] Add favorite content to profiles &#8593; ;D
+- [ ] Add option to show recommendation
+- [ ] Add settings with default subtitles language option
+- [x] Add automatic subtitles option in series (experimental)
+- [x] Add automatic next option in series
+- [ ] Add library sourced from opensubtitles so that users can attach another subtitles to their movie/show if the current list isn't working properly
 
 Check out your build locally with `npm run preview` or `bun run preview`.
 
