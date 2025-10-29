@@ -62,9 +62,3 @@ bun run build
 - [ ] Add library sourced from opensubtitles so that users can attach another subtitles to their movie/show if the current list isn't working properly
 
 Check out your build locally with `npm run preview` or `bun run preview`.
-
-> 📌 Need to deploy? Grab an [adapter](https://svelte.dev/docs/kit/adapters) for your hosting platform.
-
-Get building! 🎥
-
-Edited by AI since I'm super lazy to write it myself right now, todo's are mine lol 🫠​
