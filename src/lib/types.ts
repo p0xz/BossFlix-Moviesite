@@ -87,7 +87,7 @@ export namespace Imdb {
 		episodes: {
 			seasons?: Seasons[];
 			episodes: {
-				pageInfo: pageInfo;
+				pageInfo?: pageInfo;
 				edges: EpisodeNode[];
 			};
 		};

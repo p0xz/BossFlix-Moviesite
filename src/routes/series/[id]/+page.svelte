@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { onMount, untrack } from 'svelte';
+	import { goto, invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { fixDigits, truncate, type Imdb } from '$lib';
 	import Switch from '$lib/components/ui/Switch.svelte';
@@ -10,6 +10,7 @@
 	import SeasonMenu from '$lib/components/ui/SeasonMenu.svelte';
 	import EpisodesMenu from '$lib/components/ui/EpisodesMenu.svelte';
 	import Loader from '$lib/components/ui/Loader.svelte';
+	import { browser } from '$app/environment';
 
 	interface PlayerOptions {
 		autoPlay: 1 | 0;
@@ -20,8 +21,8 @@
 	let { data, params }: PageProps = $props();
 
 	const CHUNK = 30;
-	const title = data?.series?.originalTitleText?.text ?? 'Untitled';
-	const year = data.series?.releaseDate?.year;
+	const title = data?.seriesMeta?.originalTitleText?.text ?? 'Untitled';
+	const year = data.seriesMeta?.releaseDate?.year;
 	const searchParams = Object.fromEntries(page.url.searchParams.entries()) as {
 		season?: string;
 		episode?: string;
@@ -43,7 +44,7 @@
 	let iframeSrc = $state('');
 	let isSeasonMenuActive = $state(false);
 	let isEpisodeMenuActive = $state(false);
-	let episodeChunk = $state(0);
+	let episodeChunk = $derived(Math.max(0, Math.floor((entry.episode - 1) / CHUNK)));
 
 	const seasonEdges = $derived(nodes.get(entry.season) ?? []);
 	const totalEpisodes = $derived(seasonEdges.length);
@@ -55,7 +56,7 @@
 		})?.node;
 	});
 	const episodePlot = $derived(currentEpisodeNode?.plots?.edges?.[0]?.node?.plotText?.plainText);
-	const seasons = $derived(data?.series?.episodes?.seasons ?? []);
+	const seasons = $derived(data?.seriesMeta?.episodes?.seasons ?? []);
 
 	const episodesForUI = $derived.by<EdgeList>(() => {
 		const start = episodeChunk * CHUNK;
@@ -81,8 +82,8 @@
 		return `https://vidsrc-embed.ru/embed/tv?imdb=${id}&season=${season}&episode=${episode}&autonext=${playerOptions.autoNext}&autoplay=${playerOptions.autoPlay}${playerOptions.autoSubtitles ? `&ds_lang=${playerOptions.autoSubtitles}` : ''}`;
 	}
 
-	function updateURL(season: number, episode: number) {
-		goto(`/series/${params.id}?season=${season}&episode=${episode}`, {
+	async function updateURL(season: number, episode: number) {
+		return goto(`/series/${params.id}?season=${season}&episode=${episode}`, {
 			replaceState: true,
 			noScroll: true
 		});
@@ -99,7 +100,7 @@
 		updateURL(entry.season, entry.episode);
 	}
 
-	function updateSeason(season: number) {
+	async function updateSeason(season: number) {
 		if (entry.season === season) {
 			isSeasonMenuActive = false;
 			return;
@@ -109,30 +110,29 @@
 		entry.episode = 1;
 		episodeChunk = 0;
 		isSeasonMenuActive = false;
-		updateURL(entry.season, entry.episode);
+		await updateURL(entry.season, entry.episode);
 
 		if (!nodes.has(season)) {
-			fetchSeason(season);
+			invalidate('app:episodes');
 		}
 	}
 
-	async function fetchSeason(season: number) {
-		const response = await fetch(`/api/series/?id=${params.id}&season=${season}`).then(
-			(res) => res.json() as Promise<{ episodes: Imdb.Series['episodes']['episodes'] }>
-		);
+	$effect(() => {
+		if (data.seriesEpisodes.episodes) {
+			const season = untrack(() => entry.season);
 
-		nodes.set(season, response.episodes.edges);
-	}
+			nodes.set(season, data.seriesEpisodes.episodes.edges);
+			console.log(season);
+		}
+	});
 
 	onMount(() => {
 		if (!searchParams.season || !searchParams.episode) {
 			updateURL(entry.season, entry.episode);
 		}
 
-		const episodeEdges = data.series?.episodes?.episodes?.edges;
-		if (episodeEdges) {
-			nodes.set(entry.season, episodeEdges);
-			episodeChunk = Math.max(0, Math.floor((entry.episode - 1) / CHUNK));
+		if (data.seriesEpisodes?.episodes?.edges) {
+			nodes.set(entry.season, data.seriesEpisodes.episodes.edges);
 		}
 
 		iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
@@ -171,14 +171,14 @@
 	<title>BossFlix • {title}</title>
 </svelte:head>
 
-<div class="mx-auto flex min-h-screen w-[90%] max-w-5xl flex-col justify-center py-4">
+<div class="mx-auto flex w-[90%] max-w-5xl flex-col justify-center py-4">
 	<header class="self-center">
 		<a href="/">
 			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 		</a>
 	</header>
 	<div class="aspect-video w-full overflow-hidden rounded-lg bg-surface">
-		<iframe
+		<!-- <iframe
 			title={`${title}${year ? ` (${year})` : ''} — player`}
 			src={iframeSrc}
 			class="h-full w-full"
@@ -186,13 +186,15 @@
 			referrerpolicy="origin"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
-		></iframe>
+		></iframe> -->
 	</div>
 	<div class="grid grid-cols-[auto_1fr_auto] gap-x-4 sm:grid-cols-[auto_1fr_15rem]">
 		<div
 			class="col-span-full my-4 grid grid-cols-subgrid items-center gap-2 max-sm:grid-rows-2 sm:flex-row sm:justify-between"
 		>
-			<div class="text-center max-sm:col-span-full sm:text-end 2md:col-start-2">
+			<div
+				class="col-span-2 grid-cols-2 gap-x-4 text-center max-md:grid max-sm:col-span-full sm:ms-auto"
+			>
 				<Switch
 					condition={Boolean(playerOptions.autoSubtitles.length)}
 					event={() => {
@@ -238,7 +240,7 @@
 			class="grid grid-cols-subgrid gap-y-4 max-sm:col-span-3 max-sm:row-start-3 max-sm:mt-4 max-xs:grid-rows-[auto_auto] max-xs:gap-y-4 2md:col-span-2"
 		>
 			<img
-				src={data.series.primaryImage?.url}
+				src={data.seriesMeta?.primaryImage?.url}
 				draggable="false"
 				alt={title}
 				class="w-58 object-cover max-2md:order-2 max-2md:mt-4 max-sm:col-start-1 max-sm:mt-0 max-xs:row-start-2"
@@ -250,7 +252,7 @@
 					<span
 						class="inline-block w-16 rounded-r-sm bg-brand-primary-150/15 py-0.5 text-lg font-semibold"
 					>
-						{data.series.ratingsSummary.aggregateRating}
+						{data.seriesMeta?.ratingsSummary?.aggregateRating}
 					</span>
 				</div>
 				<p class="mt-2 ml-0.5">

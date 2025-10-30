@@ -42,7 +42,7 @@
 	<title>BossFlix • Home</title>
 </svelte:head>
 
-<div class="flex min-h-screen flex-col items-center justify-center py-8">
+<div class="flex min-h-full flex-col items-center justify-center py-8">
 	<h1 class="font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 	<form
 		bind:this={formElement}

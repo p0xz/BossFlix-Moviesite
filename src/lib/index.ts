@@ -8,4 +8,5 @@ export {
 	fixDigits,
 	outsideClick
 } from './utils';
+export { queries } from './client-queries';
 export type { Imdb } from './types';

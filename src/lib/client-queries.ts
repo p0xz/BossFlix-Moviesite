@@ -1,19 +1,12 @@
-import type { PageServerLoad } from './$types';
-import type { Imdb } from '$lib';
-
-export const load = (async ({ params, request }) => {
-	const { season } = Object.fromEntries(new URL(request.url).searchParams.entries()) as {
-		season?: string;
-		episode?: string;
-	};
-
-	const query = /* GraphQL */ `
+const queries = {
+	seasonEpisodes: /* GraphQL */ `
 		query GetSeasonEpisodes(
 			$id: ID!
 			$season: String!
 			$after: ID
 			$first: Int = 50
 			$full: Boolean! = false
+			$includeEpisodes: Boolean! = true
 		) {
 			title(id: $id) {
 				# only fetch these when you want the "full" payload
@@ -54,11 +47,8 @@ export const load = (async ({ params, request }) => {
 					seasons @include(if: $full) {
 						number
 					}
-					episodes(first: $first, after: $after, filter: { includeSeasons: [$season] }) {
-						pageInfo {
-							hasNextPage
-							endCursor
-						}
+					episodes(first: $first, after: $after, filter: { includeSeasons: [$season] })
+						@include(if: $includeEpisodes) {
 						edges {
 							node {
 								...EpisodeFields
@@ -92,32 +82,7 @@ export const load = (async ({ params, request }) => {
 			# releaseDate { year month day }
 			# primaryImage { url }
 		}
-	`;
+	`
+};
 
-	const variables = {
-		id: params.id,
-		season: season || '1',
-		after: null,
-		first: 50,
-		full: true
-	};
-
-	const response = await fetch('https://caching.graphql.imdb.com/', {
-		headers: {
-			'accept-language': 'en-US,en;q=0.9,sk;q=0.8',
-			'content-type': 'application/json',
-			'x-imdb-user-language': 'en-US',
-			'Cache-Control': 'no-cache'
-		},
-		body: JSON.stringify({ query, variables }),
-		method: 'POST'
-	}).then((res) => res.json() as Promise<{ data: { title: Imdb.Series } }>);
-
-	// console.dir(response, { depth: Infinity });
-
-	return {
-		series: response.data.title
-	};
-}) satisfies PageServerLoad;
-
-export const prerender = 'auto';
+export { queries };

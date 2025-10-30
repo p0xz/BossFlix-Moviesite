@@ -1,7 +1,7 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import type { Imdb } from '$lib';
 
-export const load = (async ({ params }) => {
+export const load = (async ({ params, fetch }) => {
 	const query = /* GraphQL */ `
 		query GetTitle($id: ID!) {
 			title(id: $id) {
@@ -52,9 +52,7 @@ export const load = (async ({ params }) => {
 		method: 'POST'
 	}).then((res) => res.json() as Promise<{ data: { title: Imdb.Movie } }>);
 
-	// console.dir(response, { depth: Infinity });
-
 	return {
 		movie: response.data.title
 	};
-}) satisfies PageServerLoad;
+}) satisfies PageLoad;

@@ -56,6 +56,13 @@
 	body {
 		@apply bg-body font-Poppins text-white;
 	}
+
+	html,
+	body {
+		display: grid;
+		grid-template-rows: auto 5.625rem;
+		height: 100svh;
+	}
 }
 
 @media (min-width: 1921px) {

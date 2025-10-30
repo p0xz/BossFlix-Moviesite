@@ -15,9 +15,8 @@
 </script>
 
 <button type="button" onclick={event} {...props}>
-	<label
-		for="autonext-check"
-		class="flex cursor-pointer items-center gap-x-2 rounded-md bg-brand-primary-150/15 p-3 text-sm"
+	<div
+		class="flex h-full cursor-pointer items-center justify-center gap-x-2 rounded-md bg-brand-primary-150/15 p-3 text-sm"
 	>
 		<p>{@render children?.()}</p>
 
@@ -26,5 +25,5 @@
 		{:else}
 			<span class="font-medium text-brand-red-200">Off</span>
 		{/if}
-	</label>
+	</div>
 </button>
