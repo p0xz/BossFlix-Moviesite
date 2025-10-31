@@ -65,13 +65,13 @@
 	}
 }
 
-@media (min-width: 1921px) {
+@media (min-width: 120.063rem) {
 	html {
 		font-size: 20px;
 	}
 }
 
-@media (min-width: 2560px) {
+@media (min-width: 160rem) {
 	html {
 		font-size: 22px;
 	}

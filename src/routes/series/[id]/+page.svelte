@@ -21,6 +21,7 @@
 	let { data, params }: PageProps = $props();
 
 	const CHUNK = 30;
+	const TARGET_ORIGIN = 'https://vidsrc-embed.ru';
 	const title = data?.seriesMeta?.originalTitleText?.text ?? 'Untitled';
 	const year = data.seriesMeta?.releaseDate?.year;
 	const searchParams = Object.fromEntries(page.url.searchParams.entries()) as {
@@ -45,6 +46,8 @@
 	let isSeasonMenuActive = $state(false);
 	let isEpisodeMenuActive = $state(false);
 	let episodeChunk = $derived(Math.max(0, Math.floor((entry.episode - 1) / CHUNK)));
+
+	let iframeRef = $state<HTMLIFrameElement>();
 
 	const seasonEdges = $derived(nodes.get(entry.season) ?? []);
 	const totalEpisodes = $derived(seasonEdges.length);
@@ -79,7 +82,7 @@
 	);
 
 	function buildMediaSource(id: string, season: number, episode: number) {
-		return `https://vidsrc-embed.ru/embed/tv?imdb=${id}&season=${season}&episode=${episode}&autonext=${playerOptions.autoNext}&autoplay=${playerOptions.autoPlay}${playerOptions.autoSubtitles ? `&ds_lang=${playerOptions.autoSubtitles}` : ''}`;
+		return `${TARGET_ORIGIN}/embed/tv?imdb=${id}&season=${season}&episode=${episode}&autonext=${playerOptions.autoNext}&autoplay=${playerOptions.autoPlay}${playerOptions.autoSubtitles ? `&ds_lang=${playerOptions.autoSubtitles}` : ''}`;
 	}
 
 	async function updateURL(season: number, episode: number) {
@@ -122,7 +125,6 @@
 			const season = untrack(() => entry.season);
 
 			nodes.set(season, data.seriesEpisodes.episodes.edges);
-			console.log(season);
 		}
 	});
 
@@ -141,7 +143,7 @@
 
 <svelte:window
 	onmessage={(event) => {
-		interface PlayerData {
+		interface EventData {
 			type: 'PLAYER_EVENT';
 			data?: {
 				imdbId: string;
@@ -151,18 +153,39 @@
 				episode: number;
 				currentTime: number;
 				duration: number;
+				data?: string;
 				// There are more events, but just added these for now since I don't see a point to add more
-				event: 'ended' | 'end' | 'finished' | 'pause' | 'paused' | 'fileend';
+				// event: 'ended' | 'end' | 'finished' | 'pause' | 'paused' | 'fileend' | 'subtitle';
 			};
+			event:
+				| 'ended'
+				| 'end'
+				| 'finished'
+				| 'pause'
+				| 'paused'
+				| 'fileend'
+				| 'subtitle'
+				| 'subtitles';
 		}
 
-		const playerData = <PlayerData>event.data;
+		const eventData = <EventData>event.data;
 
-		if (playerData?.type !== 'PLAYER_EVENT' || !playerData?.data) return;
+		const playerData = eventData?.data?.data;
 
-		if (playerData.data?.episode !== entry.episode && playerOptions.autoNext) {
-			if (playerData.data?.season !== entry.season) updateSeason(playerData.data.season);
-			updateEpisode(playerData.data?.episode);
+		if (
+			(eventData.event === 'subtitles' || eventData.event === 'subtitle') &&
+			playerData?.length &&
+			playerData.toLowerCase() !== 'off' &&
+			!playerOptions.autoSubtitles.length
+		) {
+			iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: -1 }, TARGET_ORIGIN);
+		}
+
+		if (eventData?.type !== 'PLAYER_EVENT' || !eventData?.data) return;
+
+		if (eventData.data?.episode !== entry.episode && playerOptions.autoNext) {
+			if (eventData.data?.season !== entry.season) updateSeason(eventData.data.season);
+			updateEpisode(eventData.data?.episode);
 		}
 	}}
 />
@@ -178,7 +201,8 @@
 		</a>
 	</header>
 	<div class="aspect-video w-full overflow-hidden rounded-lg bg-surface">
-		<!-- <iframe
+		<iframe
+			bind:this={iframeRef}
 			title={`${title}${year ? ` (${year})` : ''} — player`}
 			src={iframeSrc}
 			class="h-full w-full"
@@ -186,8 +210,9 @@
 			referrerpolicy="origin"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
-		></iframe> -->
+		></iframe>
 	</div>
+
 	<div class="grid grid-cols-[auto_1fr_auto] gap-x-4 sm:grid-cols-[auto_1fr_15rem]">
 		<div
 			class="col-span-full my-4 grid grid-cols-subgrid items-center gap-2 max-sm:grid-rows-2 sm:flex-row sm:justify-between"
@@ -198,10 +223,14 @@
 				<Switch
 					condition={Boolean(playerOptions.autoSubtitles.length)}
 					event={() => {
-						if (playerOptions.autoSubtitles.length) playerOptions.autoSubtitles = '';
-						else playerOptions.autoSubtitles = 'en';
-
-						iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+						if (playerOptions.autoSubtitles.length) {
+							playerOptions.autoSubtitles = '';
+							iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: -1 }, TARGET_ORIGIN);
+						} else {
+							iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: 0 }, TARGET_ORIGIN);
+							playerOptions.autoSubtitles = 'en';
+							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+						}
 					}}
 				>
 					Auto Subtitles
@@ -255,7 +284,7 @@
 						{data.seriesMeta?.ratingsSummary?.aggregateRating}
 					</span>
 				</div>
-				<p class="mt-2 ml-0.5">
+				<p class="mt-2 ml-0.5 text-sm text-primary">
 					{#if episodePlot?.length}
 						{truncate(episodePlot, 450)}
 					{:else}

@@ -1,4 +1,4 @@
-import type { LayoutLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 import { queries, type Imdb } from '$lib';
 
 export const load = (async ({ params, url, fetch, untrack }) => {
@@ -37,4 +37,4 @@ export const load = (async ({ params, url, fetch, untrack }) => {
 	return {
 		seriesMeta: response.data.title
 	};
-}) satisfies LayoutLoad;
+}) satisfies LayoutServerLoad;

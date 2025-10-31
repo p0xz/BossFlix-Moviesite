@@ -1,5 +1,5 @@
-import type { PageLoad } from './$types';
-import { queries, type Imdb } from '$lib';
+import type { PageServerLoad } from './$types';
+import { IMDB_API_URL, queries, type Imdb } from '$lib';
 
 export const load = (async ({ params, url, fetch, parent, depends, untrack }) => {
 	await parent();
@@ -14,7 +14,7 @@ export const load = (async ({ params, url, fetch, parent, depends, untrack }) =>
 		full: false
 	};
 
-	const response = await fetch('https://caching.graphql.imdb.com/', {
+	const response = await fetch(IMDB_API_URL, {
 		headers: {
 			'accept-language': 'en-US,en;q=0.9,sk;q=0.8',
 			'content-type': 'application/json',
@@ -33,4 +33,4 @@ export const load = (async ({ params, url, fetch, parent, depends, untrack }) =>
 	return {
 		seriesEpisodes: response.data.title?.episodes
 	};
-}) satisfies PageLoad;
+}) satisfies PageServerLoad;

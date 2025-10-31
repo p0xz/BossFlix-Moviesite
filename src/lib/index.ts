@@ -10,3 +10,5 @@ export {
 } from './utils';
 export { queries } from './client-queries';
 export type { Imdb } from './types';
+
+export const IMDB_API_URL = `https://caching.graphql.imdb.com/`;

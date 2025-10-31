@@ -1,7 +1,7 @@
-import type { PageLoad } from './$types';
-import type { Imdb } from '$lib';
+import type { PageServerLoad } from './$types';
+import { IMDB_API_URL, type Imdb } from '$lib';
 
-export const load = (async ({ params, fetch }) => {
+export const load = (async ({ params }) => {
 	const query = /* GraphQL */ `
 		query GetTitle($id: ID!) {
 			title(id: $id) {
@@ -42,7 +42,7 @@ export const load = (async ({ params, fetch }) => {
 		id: params.id
 	};
 
-	const response = await fetch('https://caching.graphql.imdb.com/', {
+	const response = await fetch(IMDB_API_URL, {
 		headers: {
 			'accept-language': 'en-US,en;q=0.9,sk;q=0.8',
 			'content-type': 'application/json',
@@ -55,4 +55,4 @@ export const load = (async ({ params, fetch }) => {
 	return {
 		movie: response.data.title
 	};
-}) satisfies PageLoad;
+}) satisfies PageServerLoad;
