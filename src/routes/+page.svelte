@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import { quintIn, quintOut } from 'svelte/easing';
-	import { type Imdb } from '$lib';
+	import { watchedStore, type Imdb } from '$lib';
 
 	import { debounce } from '$lib';
 	import { applyAction, enhance } from '$app/forms';
@@ -92,17 +92,20 @@
 			{#each searchResults as searchResult (searchResult.node.entity.id)}
 				{@const entity = searchResult.node.entity}
 				{@const titleType = entity.titleType.id}
+				{@const lastWatched = watchedStore.lastWatched(entity.id)}
 				<li class="w-fit text-center wrap-break-word transition-transform hover:scale-105">
 					<a
-						href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=1&episode=1` : ''}`}
+						href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
 					>
-						<img
-							src={entity.primaryImage?.url}
-							loading="lazy"
-							alt={entity.titleText.text}
-							class="mx-auto h-112 w-xs rounded-lg object-cover"
-							class:hidden={!entity.primaryImage?.url}
-						/>
+						<div class="h-112 w-xs bg-surface">
+							<img
+								src={entity.primaryImage?.url}
+								loading="lazy"
+								alt={entity.titleText.text}
+								class="mx-auto h-112 w-xs rounded-lg object-cover"
+								class:hidden={!entity.primaryImage?.url}
+							/>
+						</div>
 						<div
 							class={`${entity.primaryImage?.url && 'hidden'} flex h-112 w-78 items-center justify-center rounded-lg bg-white/5`}
 						>

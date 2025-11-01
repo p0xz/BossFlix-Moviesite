@@ -1,20 +1,17 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import { SvelteMap } from 'svelte/reactivity';
-	import { onMount, untrack } from 'svelte';
-	import { goto, invalidate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { fixDigits, truncate, type Imdb } from '$lib';
-	import Switch from '$lib/components/ui/Switch.svelte';
-	import ImdbLogo from '$lib/components/ui/ImdbLogo.svelte';
-	import SeasonMenu from '$lib/components/ui/SeasonMenu.svelte';
-	import EpisodesMenu from '$lib/components/ui/EpisodesMenu.svelte';
-	import Loader from '$lib/components/ui/Loader.svelte';
-	import { browser } from '$app/environment';
+	import { onMount, untrack } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
+	import { goto, invalidate } from '$app/navigation';
 
+	import { fixDigits, truncate, watchedStore, type Imdb } from '$lib';
+	import { Switch, ImdbLogo, SeasonMenu, EpisodesMenu, Loader } from '$lib/components/ui';
+
+	type Binary = 1 | 0;
 	interface PlayerOptions {
-		autoPlay: 1 | 0;
-		autoNext: 1 | 0;
+		autoPlay: Binary;
+		autoNext: Binary;
 		autoSubtitles: string;
 	}
 
@@ -34,12 +31,12 @@
 
 	let entry = $state({
 		season: Math.max(Number(searchParams?.season) || 1),
-		episode: Math.max(Number(searchParams?.episode) || 1)
+		episode: Math.max(Number(searchParams?.episode) || 1),
 	});
 	let playerOptions = $state<PlayerOptions>({
 		autoPlay: 1,
 		autoNext: 1,
-		autoSubtitles: ''
+		autoSubtitles: '',
 	});
 
 	let iframeSrc = $state('');
@@ -72,13 +69,13 @@
 			const start = fixDigits(idx * CHUNK + 1);
 			const end = Math.min((idx + 1) * CHUNK, totalEpisodes);
 			return `${start}-${end}`;
-		})
+		}),
 	);
 
 	const currentRangeLabel = $derived(
 		totalEpisodes
 			? `${fixDigits(episodeChunk * CHUNK + 1)}-${Math.min((episodeChunk + 1) * CHUNK, totalEpisodes)}`
-			: ''
+			: '',
 	);
 
 	function buildMediaSource(id: string, season: number, episode: number) {
@@ -88,7 +85,7 @@
 	async function updateURL(season: number, episode: number) {
 		return goto(`/series/${params.id}?season=${season}&episode=${episode}`, {
 			replaceState: true,
-			noScroll: true
+			noScroll: true,
 		});
 	}
 
@@ -138,6 +135,8 @@
 		}
 
 		iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
+
+		watchedStore.init(params.id, entry.season);
 	});
 </script>
 
@@ -184,7 +183,13 @@
 		if (eventData?.type !== 'PLAYER_EVENT' || !eventData?.data) return;
 
 		if (eventData.data?.episode !== entry.episode && playerOptions.autoNext) {
-			if (eventData.data?.season !== entry.season) updateSeason(eventData.data.season);
+			if (eventData.data?.season !== entry.season) {
+				watchedStore.init(params.id, eventData.data.season);
+				watchedStore.markEpisode(params.id, eventData.data.season, 1);
+				updateSeason(eventData.data.season);
+			}
+
+			watchedStore.markEpisode(params.id, entry.season, entry.episode);
 			updateEpisode(eventData.data?.episode);
 		}
 	}}
@@ -201,7 +206,7 @@
 		</a>
 	</header>
 	<div class="aspect-video w-full overflow-hidden rounded-lg bg-surface">
-		<iframe
+		<!-- <iframe
 			bind:this={iframeRef}
 			title={`${title}${year ? ` (${year})` : ''} — player`}
 			src={iframeSrc}
@@ -210,7 +215,7 @@
 			referrerpolicy="origin"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
-		></iframe>
+		></iframe> -->
 	</div>
 
 	<div class="grid grid-cols-[auto_1fr_auto] gap-x-4 sm:grid-cols-[auto_1fr_15rem]">
@@ -259,6 +264,8 @@
 				bind:isMenuOpen={isSeasonMenuActive}
 				currentSeason={entry.season}
 				onSeasonSelect={(season) => {
+					watchedStore.init(params.id, season);
+					watchedStore.markEpisode(params.id, season, 1);
 					updateSeason(season);
 					iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 				}}
@@ -318,11 +325,14 @@
 					<button
 						type="button"
 						onclick={() => {
+							watchedStore.markEpisode(params.id, entry.season, entry.episode);
 							updateEpisode(episodeNumber);
+							watchedStore.markEpisode(params.id, entry.season, episodeNumber);
+
 							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 						}}
 						class={`size-10 cursor-pointer rounded border-neutral-600 text-primary/40 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850
-						${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : 'bg-brand-primary-150/15 hover:ring-neutral-500'}
+						${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : watchedStore.isEpisodeMarked(params.id, entry.season, episodeNumber) ? 'bg-brand-yellow-80/50 text-[#141312]!' : 'bg-[#171926] hover:ring-neutral-500'}
 						text-center align-middle leading-10 font-semibold`}
 					>
 						{episodeNumber}

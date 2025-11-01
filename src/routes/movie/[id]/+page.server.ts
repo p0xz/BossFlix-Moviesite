@@ -1,43 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { IMDB_API_URL, type Imdb } from '$lib';
+import { queries, IMDB_API_URL, type Imdb } from '$lib';
 
 export const load = (async ({ params }) => {
-	const query = /* GraphQL */ `
-		query GetTitle($id: ID!) {
-			title(id: $id) {
-				ratingsSummary {
-					aggregateRating
-				}
-				originalTitleText {
-					text
-				}
-				releaseDate {
-					day
-					month
-					year
-				}
-				titleGenres {
-					genres {
-						genre {
-							text
-						}
-					}
-				}
-				directors: credits(first: 5, filter: { categories: ["director"] }) {
-					edges {
-						node {
-							name {
-								nameText {
-									text
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	`;
-
 	const variables = {
 		id: params.id
 	};
@@ -48,7 +12,7 @@ export const load = (async ({ params }) => {
 			'content-type': 'application/json',
 			'x-imdb-user-language': 'en-US'
 		},
-		body: JSON.stringify({ query, variables }),
+		body: JSON.stringify({ query: queries.title, variables }),
 		method: 'POST'
 	}).then((res) => res.json() as Promise<{ data: { title: Imdb.Movie } }>);
 

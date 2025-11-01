@@ -1,8 +1,15 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { watchedStore } from '$lib';
 	import { Icon } from '$lib/icons';
 	import '../app.css';
 
 	let { children } = $props();
+
+	onMount(() => {
+		const bfWatched = localStorage.getItem('bf-watched');
+		if (bfWatched) watchedStore.fromJSON(JSON.parse(bfWatched));
+	});
 </script>
 
 <svelte:head>
@@ -38,6 +45,12 @@
 	/>
 </svelte:head>
 
+<svelte:window
+	onbeforeunload={() => {
+		localStorage.setItem('bf-watched', JSON.stringify(watchedStore.toJSON()));
+	}}
+/>
+
 <main>
 	{@render children?.()}
 </main>
@@ -47,7 +60,7 @@
 >
 	<ul class="container mx-auto flex h-full w-full items-center gap-4 text-primary">
 		<li class="mr-auto">
-			<a href="/" class="font-Chewy text-4xl text-white">BF</a>
+			<a href="/" class="font-Chewy text-4xl text-white">BossFlix</a>
 		</li>
 
 		<li>

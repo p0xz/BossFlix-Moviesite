@@ -29,17 +29,9 @@ export function arraysEqual<T>(
 	return true;
 }
 
-export function toBoolean(value: boolean | string | undefined): boolean {
-	return value == 'true';
-}
-
 export function truncate(value: string, threshold: number) {
 	const sugar = value.length > threshold ? '...' : '';
 	return value.slice(0, threshold).trim() + sugar;
-}
-
-export function hasNestedArray<T>(array: T[] | T[][]): array is T[][] {
-	return Array.isArray(array) && array.length > 0 && Array.isArray(array[0]);
 }
 
 export function fixDigits(number: number, digits: number = 2, preverse: boolean = false): string {

@@ -11,12 +11,12 @@ export const Icon = {
 		Info: Info_Linear,
 		ArrowUp: ArrowUp_Linear,
 		TV: TV_Linear,
-		Gear: Gear_Linear
+		Gear: Gear_Linear,
 	},
 	Duotone: {
-		Info: Info_Duotone
+		Info: Info_Duotone,
 	},
-	Filled: {}
+	Filled: {},
 } as const;
 
 export type IconLinearName = keyof typeof Icon.Linear;

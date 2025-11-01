@@ -82,6 +82,88 @@ const queries = {
 			# releaseDate { year month day }
 			# primaryImage { url }
 		}
+	`,
+	title: /* GraphQL */ `
+		query GetTitle($id: ID!) {
+			title(id: $id) {
+				ratingsSummary {
+					aggregateRating
+				}
+				originalTitleText {
+					text
+				}
+				releaseDate {
+					day
+					month
+					year
+				}
+				titleGenres {
+					genres {
+						genre {
+							text
+						}
+					}
+				}
+				directors: credits(first: 5, filter: { categories: ["director"] }) {
+					edges {
+						node {
+							name {
+								nameText {
+									text
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	`,
+	searchTitles: /* GraphQL */ `
+		query SearchTitles(
+			$searchTerm: String!
+			$first: Int = 5
+			$after: String
+			$exact: Boolean = false
+			$titleTypes: [MainSearchTitleType!] = [TV, MOVIE]
+		) {
+			mainSearch(
+				first: $first
+				after: $after
+				options: {
+					searchTerm: $searchTerm
+					isExactMatch: $exact
+					type: TITLE
+					titleSearchOptions: { type: $titleTypes }
+				}
+			) {
+				pageInfo {
+					hasNextPage
+					endCursor
+				}
+				edges {
+					node {
+						entity {
+							... on Title {
+								id
+								titleText {
+									text
+								}
+								releaseYear {
+									year
+								}
+								titleType {
+									id
+									text
+								}
+								primaryImage {
+									url
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	`
 };
 
