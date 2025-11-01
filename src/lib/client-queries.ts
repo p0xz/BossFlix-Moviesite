@@ -118,6 +118,37 @@ const queries = {
 			}
 		}
 	`,
+	history: /* GraphQL */ `
+		query history($ids: [ID!]!) {
+			titles(ids: $ids) {
+				...TitleFields
+			}
+		}
+
+		fragment TitleFields on Title {
+			ratingsSummary {
+				aggregateRating
+			}
+			originalTitleText {
+				text
+			}
+			releaseDate {
+				day
+				month
+				year
+			}
+			titleGenres {
+				genres {
+					genre {
+						text
+					}
+				}
+			}
+			primaryImage {
+				url
+			}
+		}
+	`,
 	searchTitles: /* GraphQL */ `
 		query SearchTitles(
 			$searchTerm: String!
@@ -164,7 +195,7 @@ const queries = {
 				}
 			}
 		}
-	`
+	`,
 };
 
 export { queries };

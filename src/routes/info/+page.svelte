@@ -4,6 +4,10 @@
 	let { data }: PageProps = $props();
 </script>
 
+<svelte:head>
+	<title>BossFlix • Info</title>
+</svelte:head>
+
 <div class="text-center">
 	<h1 class="pt-8 font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 

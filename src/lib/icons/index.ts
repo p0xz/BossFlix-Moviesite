@@ -4,6 +4,7 @@ import ArrowUp_Linear from './Linear/Arrows/ArrowTop.svelte';
 import FilmTape_Linear from './Linear/Audiovisual/FilmTape.svelte';
 import TV_Linear from './Linear/Audiovisual/TV.svelte';
 import Gear_Linear from './Linear/Basic/Gear.svelte';
+import Eye_Linear from './Linear/Security/Eye.svelte';
 
 export const Icon = {
 	Linear: {
@@ -12,6 +13,7 @@ export const Icon = {
 		ArrowUp: ArrowUp_Linear,
 		TV: TV_Linear,
 		Gear: Gear_Linear,
+		Eye: Eye_Linear,
 	},
 	Duotone: {
 		Info: Info_Duotone,

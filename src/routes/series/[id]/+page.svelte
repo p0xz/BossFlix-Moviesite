@@ -4,7 +4,6 @@
 	import { onMount, untrack } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { goto, invalidate } from '$app/navigation';
-
 	import { fixDigits, truncate, watchedStore, type Imdb } from '$lib';
 	import { Switch, ImdbLogo, SeasonMenu, EpisodesMenu, Loader } from '$lib/components/ui';
 
@@ -33,6 +32,7 @@
 		season: Math.max(Number(searchParams?.season) || 1),
 		episode: Math.max(Number(searchParams?.episode) || 1),
 	});
+
 	let playerOptions = $state<PlayerOptions>({
 		autoPlay: 1,
 		autoNext: 1,
@@ -144,18 +144,19 @@
 	onmessage={(event) => {
 		interface EventData {
 			type: 'PLAYER_EVENT';
-			data?: {
-				imdbId: string;
-				tmdbId: number;
-				type: string;
-				season: number;
-				episode: number;
-				currentTime: number;
-				duration: number;
-				data?: string;
-				// There are more events, but just added these for now since I don't see a point to add more
-				// event: 'ended' | 'end' | 'finished' | 'pause' | 'paused' | 'fileend' | 'subtitle';
-			};
+			data?:
+				| {
+						imdbId: string;
+						tmdbId: number;
+						type: string;
+						season: number;
+						episode: number;
+						currentTime: number;
+						duration: number;
+						// There are more events, but just added these for now since I don't see a point to add more
+						// event: 'ended' | 'end' | 'finished' | 'pause' | 'paused' | 'fileend' | 'subtitle';
+				  }
+				| string;
 			event:
 				| 'ended'
 				| 'end'
@@ -169,11 +170,11 @@
 
 		const eventData = <EventData>event.data;
 
-		const playerData = eventData?.data?.data;
+		const playerData = eventData?.data;
 
 		if (
 			(eventData.event === 'subtitles' || eventData.event === 'subtitle') &&
-			playerData?.length &&
+			typeof playerData === 'string' &&
 			playerData.toLowerCase() !== 'off' &&
 			!playerOptions.autoSubtitles.length
 		) {
@@ -182,7 +183,11 @@
 
 		if (eventData?.type !== 'PLAYER_EVENT' || !eventData?.data) return;
 
-		if (eventData.data?.episode !== entry.episode && playerOptions.autoNext) {
+		if (
+			typeof eventData.data === 'object' &&
+			eventData.data?.episode !== entry.episode &&
+			playerOptions.autoNext
+		) {
 			if (eventData.data?.season !== entry.season) {
 				watchedStore.init(params.id, eventData.data.season);
 				watchedStore.markEpisode(params.id, eventData.data.season, 1);
@@ -206,7 +211,7 @@
 		</a>
 	</header>
 	<div class="aspect-video w-full overflow-hidden rounded-lg bg-surface">
-		<!-- <iframe
+		<iframe
 			bind:this={iframeRef}
 			title={`${title}${year ? ` (${year})` : ''} — player`}
 			src={iframeSrc}
@@ -215,7 +220,7 @@
 			referrerpolicy="origin"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
-		></iframe> -->
+		></iframe>
 	</div>
 
 	<div class="grid grid-cols-[auto_1fr_auto] gap-x-4 sm:grid-cols-[auto_1fr_15rem]">
@@ -232,7 +237,7 @@
 							playerOptions.autoSubtitles = '';
 							iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: -1 }, TARGET_ORIGIN);
 						} else {
-							iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: 0 }, TARGET_ORIGIN);
+							iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: 1 }, TARGET_ORIGIN);
 							playerOptions.autoSubtitles = 'en';
 							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 						}

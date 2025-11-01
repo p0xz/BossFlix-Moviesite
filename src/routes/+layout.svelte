@@ -65,7 +65,7 @@
 
 		<li>
 			<a
-				href="/"
+				href="/movies"
 				class="flex items-center gap-2 hover:text-white max-sm:pr-2 max-xs:flex-col hover:[&>svg]:fill-white"
 			>
 				<Icon.Linear.FilmTape class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
@@ -75,11 +75,21 @@
 
 		<li>
 			<a
-				href="/"
+				href="/tv-series"
 				class="flex items-center gap-2 hover:text-white max-sm:pl-2 max-xs:flex-col hover:[&>svg]:fill-white"
 			>
 				<Icon.Linear.TV class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
 				<span class="link-text"> TV Series </span>
+			</a>
+		</li>
+
+		<li>
+			<a
+				href="/history"
+				class="flex items-center gap-2 hover:text-white max-sm:pl-2 max-xs:flex-col hover:[&>svg]:fill-white"
+			>
+				<Icon.Linear.Eye class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
+				<span class="link-text">History</span>
 			</a>
 		</li>
 

@@ -30,9 +30,10 @@ class WatchedStore {
 		const mediaStore = this.#store.get(imdbId) as SvelteMap<number, SvelteSet<number>>;
 		if (!mediaStore) return [1, 1];
 
-		const latestWatchedSeason = Math.max(...mediaStore.keys());
+		const latestWatchedSeason = Math.max(...mediaStore.keys(), 1);
 		const latestWatchedEpisode = Math.max(
 			...(mediaStore.get(latestWatchedSeason) as SvelteSet<number>).values(),
+			1,
 		);
 
 		return [latestWatchedSeason, latestWatchedEpisode];
@@ -59,6 +60,10 @@ class WatchedStore {
 
 			this.#store.set(imdbId, seasonsMap);
 		}
+	}
+
+	get state() {
+		return this.#store;
 	}
 }
 

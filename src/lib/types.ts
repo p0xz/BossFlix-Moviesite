@@ -3,7 +3,7 @@ export namespace Imdb {
 		aggregateRating: number;
 	}
 
-	interface primaryImage {
+	export interface primaryImage {
 		url: string;
 	}
 

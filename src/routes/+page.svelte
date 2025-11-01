@@ -43,7 +43,14 @@
 </svelte:head>
 
 <div class="flex min-h-full flex-col items-center justify-center py-8">
-	<h1 class="font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
+	<h1 class="relative font-Chewy text-5xl font-bold tracking-wider">
+		BossFlix
+		<span
+			class="bg-beta absolute bottom-0 ml-1 rounded px-2 py-0.5 font-Poppins text-sm font-medium"
+		>
+			beta
+		</span>
+	</h1>
 	<form
 		bind:this={formElement}
 		method="POST"
@@ -122,3 +129,10 @@
 		</ul>
 	{/if}
 </div>
+
+<style>
+	.bg-beta {
+		background: linear-gradient(353deg, #4449a9 17.51%, #7c87f7 183.08%);
+		box-shadow: 0px 1px 3px 0px rgba(255, 255, 255, 0.25) inset;
+	}
+</style>
