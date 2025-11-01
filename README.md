@@ -56,6 +56,7 @@ bun run build
 - [ ] Add local profiles which could potentionally transfer content marked as favorite
 - [ ] Add favorite content to profiles &#8593; ;D
 - [ ] Add option to show recommendation
+- [x] Add last watched (season & episode) of show
 - [ ] Add settings with default subtitles language option
 - [x] Add automatic subtitles option in series (experimental)
 - [x] Add automatic next option in series
