@@ -125,7 +125,7 @@
 		}
 	});
 
-	onMount(() => {
+	onMount(async () => {
 		if (!searchParams.season || !searchParams.episode) {
 			updateURL(entry.season, entry.episode);
 		}
@@ -134,9 +134,32 @@
 			nodes.set(entry.season, data.seriesEpisodes.episodes.edges);
 		}
 
+		// console.log(data.seriesMeta.episodes.seasons?.length);
+
 		iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 
-		watchedStore.init(params.id, entry.season);
+		watchedStore.init(params.id, entry.season).markEpisode(params.id, entry.season, entry.episode);
+
+		if (watchedStore.totalEpisodes(params.id) === 0 || watchedStore.areEntriesEmpty(params.id)) {
+			const response = await fetch('/series', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ id: params.id }),
+			}).then((res) => res.json() as Promise<{ totalEpisodes: number }>);
+
+			watchedStore.setEntries(params.id, {
+				posterUrl: data.seriesMeta?.primaryImage?.url || '',
+				title,
+				releaseYear: year,
+				titleType: 'series',
+				rating: data.seriesMeta?.ratingsSummary?.aggregateRating || 0,
+				genres: data.seriesMeta.titleGenres.genres.map((g) => g.genre.text) || [],
+				totalEpisodes: response.totalEpisodes || 0,
+				totalSeasons: data.seriesMeta.episodes.seasons?.length || 0,
+			});
+		}
 	});
 </script>
 
@@ -330,9 +353,8 @@
 					<button
 						type="button"
 						onclick={() => {
-							watchedStore.markEpisode(params.id, entry.season, entry.episode);
+							watchedStore.markEpisode(params.id, entry.season, [entry.episode, episodeNumber]);
 							updateEpisode(episodeNumber);
-							watchedStore.markEpisode(params.id, entry.season, episodeNumber);
 
 							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
 						}}
@@ -349,46 +371,3 @@
 		</div>
 	</div>
 </div>
-
-<style global>
-	.loader {
-		width: 2rem;
-		height: 2rem;
-		display: inline-block;
-		border-radius: 50%;
-		position: relative;
-		animation: rotate 1s linear infinite;
-	}
-	.loader::before {
-		content: '';
-		position: absolute;
-		inset: 0px;
-		border-radius: 50%;
-		border: 5px solid #fff;
-		animation: prixClipFix 2s linear infinite;
-	}
-
-	@keyframes rotate {
-		100% {
-			transform: rotate(360deg);
-		}
-	}
-
-	@keyframes prixClipFix {
-		0% {
-			clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0);
-		}
-		25% {
-			clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0);
-		}
-		50% {
-			clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%);
-		}
-		75% {
-			clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%);
-		}
-		100% {
-			clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
-		}
-	}
-</style>

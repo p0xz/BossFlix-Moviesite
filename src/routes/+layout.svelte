@@ -60,7 +60,7 @@
 >
 	<ul class="container mx-auto flex h-full w-full items-center gap-4 text-primary">
 		<li class="mr-auto">
-			<a href="/" class="font-Chewy text-4xl text-white">BossFlix</a>
+			<a href="/" class="font-Chewy text-4xl text-white">BF</a>
 		</li>
 
 		<li>

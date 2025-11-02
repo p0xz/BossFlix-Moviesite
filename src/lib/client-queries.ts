@@ -104,6 +104,12 @@ const queries = {
 						}
 					}
 				}
+				primaryImage {
+					url
+				}
+				runtime {
+					seconds
+				}
 				directors: credits(first: 5, filter: { categories: ["director"] }) {
 					edges {
 						node {
@@ -126,6 +132,10 @@ const queries = {
 		}
 
 		fragment TitleFields on Title {
+			titleType {
+				text
+				canHaveEpisodes
+			}
 			ratingsSummary {
 				aggregateRating
 			}
@@ -146,6 +156,17 @@ const queries = {
 			}
 			primaryImage {
 				url
+			}
+		}
+	`,
+	totalEpisodes: /* GraphQL */ `
+		query SeriesTotal($id: ID!) {
+			title(id: $id) {
+				episodes {
+					episodes(first: 0) {
+						total
+					}
+				}
 			}
 		}
 	`,
@@ -179,6 +200,9 @@ const queries = {
 								titleText {
 									text
 								}
+								ratingsSummary {
+									aggregateRating
+								}
 								releaseYear {
 									year
 								}
@@ -188,6 +212,22 @@ const queries = {
 								}
 								primaryImage {
 									url
+								}
+								runtime {
+									seconds
+								}
+								episodes {
+									displayableSeasons(first: 0) {
+										# often exposes a count on the connection
+										total # if this errors, try: total / count
+									}
+								}
+								titleGenres {
+									genres {
+										genre {
+											text
+										}
+									}
 								}
 							}
 						}

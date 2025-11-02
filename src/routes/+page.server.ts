@@ -10,7 +10,7 @@ export const actions = {
 		const formData = await request.formData();
 		const media = <string>formData.get('media');
 
-		if (!media || media.trim().length === 0) {
+		if (!media || media.trim().length === 0 || typeof media !== 'string') {
 			return { search: undefined };
 		}
 
@@ -18,7 +18,7 @@ export const actions = {
 			searchTerm: media,
 			first: 10,
 			exact: false,
-			type: ''
+			type: '',
 		};
 
 		const response = await fetch('https://caching.graphql.imdb.com/', {
@@ -26,11 +26,13 @@ export const actions = {
 			headers: {
 				'content-type': 'application/json',
 				'accept-language': 'en-US,en;q=0.9',
-				'x-imdb-user-language': 'en-US'
+				'x-imdb-user-language': 'en-US',
 			},
-			body: JSON.stringify({ query: queries.searchTitles, variables })
+			body: JSON.stringify({ query: queries.searchTitles, variables }),
 		}).then((res) => res.json() as Promise<{ data: { mainSearch: Imdb.Search.MainSearch } }>);
 
+		// console.dir(response, { depth: Infinity });
+
 		return { search: response.data.mainSearch };
-	}
+	},
 } satisfies Actions;

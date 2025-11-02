@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Imdb } from '$lib/types';
+	import type { Imdb } from '$lib/types/types';
 	import { slide } from 'svelte/transition';
 	import { outsideClick } from '$lib';
 

@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import { quintIn, quintOut } from 'svelte/easing';
-	import { watchedStore, type Imdb } from '$lib';
+	import { formatRuntime, watchedStore, type Imdb } from '$lib';
 
 	import { debounce } from '$lib';
 	import { applyAction, enhance } from '$app/forms';
 	import { Icon } from '$lib/icons';
+	import MediaCard from '$lib/components/ui/MediaCard.svelte';
 
 	let { form } = $props();
 
@@ -61,6 +62,9 @@
 						[]) as Imdb.Search.Edge[];
 					if (!sameEdges(searchResults, incoming)) {
 						searchResults = incoming;
+						console.log(`edges aren't same`);
+					} else {
+						console.log(`edges are same`);
 					}
 				}
 
@@ -100,31 +104,27 @@
 				{@const entity = searchResult.node.entity}
 				{@const titleType = entity.titleType.id}
 				{@const lastWatched = watchedStore.lastWatched(entity.id)}
-				<li class="w-fit text-center wrap-break-word transition-transform hover:scale-105">
-					<a
-						href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
-					>
-						<div class="h-112 w-xs bg-surface">
-							<img
-								src={entity.primaryImage?.url}
-								loading="lazy"
-								alt={entity.titleText.text}
-								class="mx-auto h-112 w-xs rounded-lg object-cover"
-								class:hidden={!entity.primaryImage?.url}
-							/>
-						</div>
-						<div
-							class={`${entity.primaryImage?.url && 'hidden'} flex h-112 w-78 items-center justify-center rounded-lg bg-white/5`}
+				{@const totalSeasons = entity.episodes?.displayableSeasons?.total}
+				{#if entity?.primaryImage?.url}
+					<li class="w-fit text-center wrap-break-word transition-transform hover:scale-105">
+						<a
+							href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
 						>
-							<Icon.Linear.FilmTape class="fill-white/10" />
-						</div>
-						<h3 class="mt-1 text-center">{entity.titleText.text}</h3>
-					</a>
-					<p class="text-sm text-[#C9D3EE]">
-						{entity.titleType.text}
-						<span class:hidden={!entity.releaseYear?.year}> ({entity.releaseYear?.year})</span>
-					</p>
-				</li>
+							<MediaCard
+								posterUrl={entity.primaryImage?.url ?? ''}
+								title={entity.titleText.text}
+								genres={entity.titleGenres?.genres
+									.map((g) => g.genre.text)
+									.slice(0, 3)
+									.join(' • ')}
+								rating={entity.ratingsSummary?.aggregateRating ?? 0}
+								labels={[
+									`${totalSeasons ? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}` : formatRuntime(entity?.runtime?.seconds || 0)}`,
+								]}
+							/>
+						</a>
+					</li>
+				{/if}
 			{/each}
 		</ul>
 	{/if}

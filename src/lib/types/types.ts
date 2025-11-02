@@ -25,6 +25,10 @@ export namespace Imdb {
 		}[];
 	}
 
+	interface runtime {
+		seconds: number;
+	}
+
 	interface directorNode {
 		edges: {
 			node: {
@@ -37,7 +41,6 @@ export namespace Imdb {
 		}[];
 	}
 
-	// tv series specific
 	export interface Seasons {
 		number: number;
 	}
@@ -55,6 +58,10 @@ export namespace Imdb {
 				};
 			};
 		}[];
+	}
+
+	interface displayableSeasons {
+		total: number;
 	}
 
 	export interface EpisodeNode {
@@ -80,13 +87,17 @@ export namespace Imdb {
 		titleGenres: titleGenres;
 		directors: directorNode;
 	}
-	export interface Movie extends _MediaInfo {}
+	export interface Movie extends _MediaInfo {
+		primaryImage: primaryImage;
+		runtime: runtime;
+	}
 
 	export interface Series extends _MediaInfo {
 		primaryImage: primaryImage;
 		episodes: {
 			seasons?: Seasons[];
 			episodes: {
+				total: number;
 				pageInfo?: pageInfo;
 				edges: EpisodeNode[];
 			};
@@ -111,14 +122,19 @@ export namespace Imdb {
 			releaseYear: ReleaseYear;
 			titleType: TitleType;
 			primaryImage: primaryImage;
+			titleGenres: titleGenres;
+			runtime: runtime;
+			episodes: { displayableSeasons: displayableSeasons };
+			ratingsSummary: ratingsSummary;
 		}
 
 		interface ReleaseYear {
 			year: number;
 		}
 
-		interface TitleType {
+		export interface TitleType {
 			id: 'tvSeries' | 'tvMiniSeries' | 'tvMovie' | 'movie';
+			canHaveEpisodes: boolean;
 			text: string;
 		}
 		export interface AdvancedTitleSearch {

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
+	import { watchedStore } from '$lib';
+	import { onMount } from 'svelte';
 
 	let { data, params }: PageProps = $props();
 
@@ -14,6 +16,21 @@
 	const genres = movie?.titleGenres?.genres?.map((g) => g?.genre?.text);
 	const directors = movie?.directors.edges;
 	const rating = movie?.ratingsSummary?.aggregateRating;
+
+	onMount(() => {
+		watchedStore.init(params.id, 0, true);
+		watchedStore.setEntries(params.id, {
+			title,
+			posterUrl: movie?.primaryImage?.url ?? '',
+			genres: genres ?? [],
+			rating: rating ?? 0,
+			titleType: 'movie',
+			totalSeasons: 0,
+			totalEpisodes: 0,
+			releaseYear: year ?? null,
+			runtime: movie?.runtime?.seconds ?? 0,
+		});
+	});
 </script>
 
 <svelte:head>

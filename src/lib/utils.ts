@@ -14,7 +14,7 @@ export function debounce<F extends (...args: any[]) => void>(func: F, waitFor: n
 export function arraysEqual<T>(
 	a: T[] = [],
 	b: T[] = [],
-	comparator: (a: T, b: T, indexA: number, indexB: number) => boolean
+	comparator: (a: T, b: T, indexA: number, indexB: number) => boolean,
 ): boolean {
 	if (a === b) return true;
 	if (!a || !b) return false;
@@ -55,4 +55,11 @@ export function outsideClick(callback: () => void): Attachment {
 			document.removeEventListener('click', handleClick);
 		};
 	};
+}
+
+export function formatRuntime(seconds: number) {
+	return new Intl.DurationFormat('en', { style: 'narrow' }).format({
+		hours: Math.floor(seconds / 3600),
+		minutes: Math.floor((seconds % 3600) / 60),
+	});
 }

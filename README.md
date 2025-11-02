@@ -53,9 +53,11 @@ bun run build
 ## TODO
 
 - [ ] Add filters for homepage search
-- [ ] Add local profiles which could potentionally transfer content marked as favorite
-- [ ] Add favorite content to profiles &#8593; ;D
+- [ ] Add Movies & Series pages
+- [ ] Add transfer of watched / favourite
 - [ ] Add option to show recommendation
+- [ ] Add status to series if it's airing or ended
+- [ ] Add more sources for medias
 - [x] Add last watched (season & episode) of show
 - [ ] Add settings with default subtitles language option
 - [x] Add automatic subtitles option in series (experimental)
