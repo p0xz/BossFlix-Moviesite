@@ -42,7 +42,6 @@ jobs:
           name: build-folder
           path: build
 
-      # Clean the remote build directory first so no stale files remain
       - name: Remote prepare (clean target)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -53,10 +52,8 @@ jobs:
           script: |
             set -e
             mkdir -p "${{ env.DEPLOY_PATH }}"
-            rm -rf "${{ env.DEPLOY_PATH }}/build"
-            mkdir -p "${{ env.DEPLOY_PATH }}/build"
+            rm -rf "${{ env.DEPLOY_PATH }}"/*
 
-      # Copy the freshly built files to /root/bossflix/build
       - name: Upload build to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -65,6 +62,6 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           source: 'build/*'
-          target: '${{ env.DEPLOY_PATH }}/build'
+          target: '${{ env.DEPLOY_PATH }}'
           overwrite: true
-          strip_components: 0
+          strip_components: 1
