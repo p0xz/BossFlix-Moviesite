@@ -1,0 +1,1 @@
+export const REQUIRED_LENGTH_TO_SUBMIT = 2;
