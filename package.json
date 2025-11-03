@@ -34,8 +34,5 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check ."
 	},
-	"type": "module",
-	"dependencies": {
-		"arktype": "^2.1.25"
-	}
+	"type": "module"
 }
