@@ -1,41 +1,28 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import { quintIn, quintOut } from 'svelte/easing';
-	import { formatRuntime, watchedStore, type Imdb } from '$lib';
+	import { formatRuntime, watchedStore } from '$lib';
 
 	import { debounce } from '$lib';
-	import { applyAction, enhance } from '$app/forms';
-	import { Icon } from '$lib/icons';
+	import { enhance } from '$app/forms';
 	import MediaCard from '$lib/components/ui/MediaCard.svelte';
 
 	let { form } = $props();
 
-	// oxlint-disable-next-line no-unassigned-vars
-	let formElement: HTMLFormElement;
-	let searchResults = $state<Imdb.Search.Edge[]>([]);
-
 	const REQUIRED_LENGTH_TO_SUBMIT = 2;
+	let previousInputValue = '';
 
-	function sameEdges(a: Imdb.Search.Edge[], b: Imdb.Search.Edge[]) {
-		if (a === b) return true;
-		if (a.length !== b.length) return false;
-		for (let i = 0; i < a.length; i++) {
-			if (a[i].node.entity.id !== b[i].node.entity.id) return false;
-		}
-		return true;
-	}
-
-	const submitDebounced = debounce(() => formElement?.requestSubmit(), 300);
+	const submitDebounced = debounce((form) => form.requestSubmit(), 300);
 
 	function handleInput(event: Event) {
 		const currentTarget = event.currentTarget as HTMLInputElement;
 		const query = currentTarget.value.trim();
-		if (query.length < REQUIRED_LENGTH_TO_SUBMIT) {
-			searchResults = [];
+
+		if (query.length < REQUIRED_LENGTH_TO_SUBMIT || query === previousInputValue) {
 			return;
 		}
-
-		submitDebounced();
+		previousInputValue = query;
+		submitDebounced(currentTarget.form);
 	}
 </script>
 
@@ -53,22 +40,10 @@
 		</span>
 	</h1>
 	<form
-		bind:this={formElement}
 		method="POST"
 		use:enhance={() => {
-			return async ({ result }) => {
-				if (result.type === 'success') {
-					const incoming = ((result.data as NonNullable<typeof form>)?.search?.edges ??
-						[]) as Imdb.Search.Edge[];
-					if (!sameEdges(searchResults, incoming)) {
-						searchResults = incoming;
-						console.log(`edges aren't same`);
-					} else {
-						console.log(`edges are same`);
-					}
-				}
-
-				await applyAction(result);
+			return async ({ update }) => {
+				update({ reset: false });
 			};
 		}}
 		class="relative flex flex-col items-center justify-center gap-y-2 py-6"
@@ -94,40 +69,38 @@
 		</p>
 	</form>
 
-	{#if searchResults?.length > 0}
-		<ul
-			class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]"
-			in:slide={{ duration: 280, easing: quintIn }}
-			out:slide={{ duration: 220, easing: quintOut }}
-		>
-			{#each searchResults as searchResult (searchResult.node.entity.id)}
-				{@const entity = searchResult.node.entity}
-				{@const titleType = entity.titleType.id}
-				{@const lastWatched = watchedStore.lastWatched(entity.id)}
-				{@const totalSeasons = entity.episodes?.displayableSeasons?.total}
-				{#if entity?.primaryImage?.url}
-					<li class="w-fit text-center wrap-break-word transition-transform hover:scale-105">
-						<a
-							href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
-						>
-							<MediaCard
-								posterUrl={entity.primaryImage?.url ?? ''}
-								title={entity.titleText.text}
-								genres={entity.titleGenres?.genres
-									.map((g) => g.genre.text)
-									.slice(0, 3)
-									.join(' • ')}
-								rating={entity.ratingsSummary?.aggregateRating ?? 0}
-								labels={[
-									`${totalSeasons ? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}` : formatRuntime(entity?.runtime?.seconds || 0)}`,
-								]}
-							/>
-						</a>
-					</li>
-				{/if}
-			{/each}
-		</ul>
-	{/if}
+	<ul
+		class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]"
+		in:slide={{ duration: 280, easing: quintIn }}
+		out:slide={{ duration: 220, easing: quintOut }}
+	>
+		{#each form?.search?.edges as searchResult (searchResult.node.entity.id)}
+			{@const entity = searchResult.node.entity}
+			{@const titleType = entity.titleType.id}
+			{@const lastWatched = watchedStore.lastWatched(entity.id)}
+			{@const totalSeasons = entity.episodes?.displayableSeasons?.total}
+			{#if entity?.primaryImage?.url}
+				<li class="w-fit text-center wrap-break-word transition-transform hover:scale-105">
+					<a
+						href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
+					>
+						<MediaCard
+							posterUrl={entity.primaryImage?.url ?? ''}
+							title={entity.titleText.text}
+							genres={entity.titleGenres?.genres
+								.map((g) => g.genre.text)
+								.slice(0, 3)
+								.join(' • ')}
+							rating={entity.ratingsSummary?.aggregateRating ?? 0}
+							labels={[
+								`${totalSeasons ? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}` : formatRuntime(entity?.runtime?.seconds || 0)}`,
+							]}
+						/>
+					</a>
+				</li>
+			{/if}
+		{/each}
+	</ul>
 </div>
 
 <style>

@@ -1,5 +1,7 @@
 import type { RequestHandler } from './$types';
 
+export const prerender = true;
+
 export const GET: RequestHandler = async () => {
 	const lastmod = new Date().toISOString();
 
@@ -11,19 +13,17 @@ export const GET: RequestHandler = async () => {
             xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
                     http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-
         <url>
         <loc>https://bossflix.org/</loc>
         <lastmod>${lastmod}</lastmod>
         </url>
-
 
         </urlset>
     `.trim();
 
 	return new Response(sitemap, {
 		headers: {
-			'Content-Type': 'application/xml'
-		}
+			'Content-Type': 'application/xml',
+		},
 	});
 };
