@@ -24,7 +24,7 @@
 			previousInputValue = query;
 
 			page.url.searchParams.set('query', '');
-			goto(`${page.url.pathname}?${page.url.searchParams.toString()}`, {
+			goto(page.url.pathname + page.url.search, {
 				invalidateAll: true,
 			});
 			return;
@@ -79,7 +79,7 @@
 			{@const lastWatched = watchedStore.lastWatched(entity.id)}
 			{@const totalSeasons = entity.episodes?.displayableSeasons?.total}
 			<li
-				animate:flip
+				animate:flip={{ duration: 700 }}
 				in:fly={{ y: 18, opacity: 0, duration: 220, easing: quintIn }}
 				out:fly={{ y: -8, opacity: 0, duration: 160, easing: quintOut }}
 				class="w-fit text-center wrap-break-word transition-transform hover:scale-105"
