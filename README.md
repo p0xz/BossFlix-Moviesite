@@ -52,16 +52,20 @@ bun run build
 
 ## TODO
 
-- [ ] Add filters for homepage search
-- [ ] Add Movies & Series pages
-- [ ] Add transfer of watched / favourite
-- [ ] Add option to show recommendation
-- [ ] Add status to series if it's airing or ended
-- [ ] Add more sources for medias
-- [x] Add last watched (season & episode) of show
-- [ ] Add settings with default subtitles language option
+Feature / Priority
+
+- [ ] Add filters for homepage search (mid)
+- [ ] Add Movies & Series pages (low)
+- [ ] Add transfer of watched / favourite (low)
+- [ ] Add option to show recommendation (low)
+- [ ] Add settings with default subtitles language option (mid)
+- [ ] Add library sourced from opensubtitles so that users can attach another subtitles to their movie/show if the current list isn't working properly (mid)
+- [ ] Add status to series if it's airing or ended (high)
+- [ ] As with more sources for medias there's a need to sync all settings i.e: automatic subtitles & auto next feature (releasing soon [experimental])
+- [ ] Add more sources for medias (very high, in work currently)
+
 - [x] Add automatic subtitles option in series (experimental)
+- [x] Add last watched (season & episode) of show
 - [x] Add automatic next option in series
-- [ ] Add library sourced from opensubtitles so that users can attach another subtitles to their movie/show if the current list isn't working properly
 
 Check out your build locally with `npm run preview` or `bun run preview`.
