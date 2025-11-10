@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import '../lib/css/fontfaces.css';
+	import '../app.css';
+	import { onMount, type Component } from 'svelte';
 	import { watchedStore } from '$lib';
 	import { Icon } from '$lib/icons';
-	import '../app.css';
 
 	let { children } = $props();
 
@@ -10,6 +11,29 @@
 		const bfWatched = localStorage.getItem('bf-watched');
 		if (bfWatched) watchedStore.fromJSON(JSON.parse(bfWatched));
 	});
+
+	const links = [
+		{
+			href: '/movie',
+			label: 'Movies',
+			icon: Icon.Linear.FilmTape,
+		},
+		{
+			href: '/series',
+			label: 'TV Series',
+			icon: Icon.Linear.TV,
+		},
+		{
+			href: '/history',
+			label: 'History',
+			icon: Icon.Linear.Eye,
+		},
+		{
+			href: '/settings',
+			label: 'Settings',
+			icon: Icon.Linear.Gear,
+		},
+	] as const;
 </script>
 
 <svelte:head>
@@ -19,30 +43,18 @@
 	<!-- Open Graph / Facebook -->
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content="http://bossflix.org/" />
-	<meta
-		property="og:title"
-		content="BossFlix - watch your favourite shows and movies free online"
-	/>
+	<meta property="og:title" content="BossFlix - watch your favourite shows and movies free online" />
 	<meta property="og:description" content="Watch your favourite shows and movies free online" />
 	<meta property="og:image" content="http://bossflix.org/og-image-bossflix.png" />
 
 	<!-- Twitter -->
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:url" content="http://bossflix.org/" />
-	<meta
-		name="twitter:title"
-		content="BossFlix - watch your favourite shows and movies free online"
-	/>
-	<meta
-		name="twitter:description"
-		content="BossFlix - watch your favourite shows and movies free online"
-	/>
+	<meta name="twitter:title" content="BossFlix - watch your favourite shows and movies free online" />
+	<meta name="twitter:description" content="BossFlix - watch your favourite shows and movies free online" />
 	<meta name="twitter:image" content="http://bossflix.org/og-image-bossflix.png" />
 
-	<meta
-		name="keywords"
-		content="streaming, movies, tv shows, free, online, watch, bossflix, boss flix, bossflix.org"
-	/>
+	<meta name="keywords" content="streaming, movies, tv shows, free, online, watch, bossflix, boss flix, bossflix.org" />
 </svelte:head>
 
 <svelte:window
@@ -51,56 +63,28 @@
 	}}
 />
 
+{#snippet Link(href: string, label: string, icon: Component<Record<string, any>, {}, ''>)}
+	{@const Component = icon}
+	<a {href} class="flex items-center justify-center gap-2 hover:text-neutral-200 hover:[&>svg]:fill-white">
+		<Component class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
+		<span class="hidden sm:inline"> {label} </span>
+	</a>
+{/snippet}
+
 <main>
 	{@render children?.()}
 </main>
 
-<header
-	class="flex w-full border-t border-t-brand-primary-150/20 bg-surface px-4 py-6 transition-all duration-600 outline-none"
->
-	<ul class="container mx-auto flex h-full w-full items-center gap-4 text-primary">
+<header class="flex w-full border-t border-t-brand-primary-150/20 bg-surface px-4 py-6 transition-all duration-600 outline-none">
+	<ul class="container mx-auto flex h-full w-full items-center gap-x-10 text-primary sm:gap-x-8">
 		<li class="mr-auto">
 			<a href="/" class="font-Chewy text-4xl text-white">BF</a>
 		</li>
 
-		<li>
-			<a
-				href="/movies"
-				class="flex items-center gap-2 hover:text-neutral-200 max-sm:pr-2 max-xs:flex-col hover:[&>svg]:fill-white"
-			>
-				<Icon.Linear.FilmTape class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
-				<span> Movies </span>
-			</a>
-		</li>
-
-		<li>
-			<a
-				href="/tv-series"
-				class="flex items-center gap-2 hover:text-neutral-200 max-sm:pl-2 max-xs:flex-col hover:[&>svg]:fill-white"
-			>
-				<Icon.Linear.TV class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
-				<span> TV Series </span>
-			</a>
-		</li>
-
-		<li>
-			<a
-				href="/history"
-				class="flex items-center gap-2 hover:text-neutral-200 max-sm:pl-2 max-xs:flex-col hover:[&>svg]:fill-white"
-			>
-				<Icon.Linear.Eye class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
-				<span>History</span>
-			</a>
-		</li>
-
-		<li class="ml-auto">
-			<a
-				href="/settings"
-				class="flex items-center gap-2 hover:text-neutral-200 max-xs:flex-col hover:[&>svg]:fill-white"
-			>
-				<Icon.Linear.Gear class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
-				<span> Settings </span>
-			</a>
-		</li>
+		{#each links as link (link.href)}
+			<li class="last:ml-auto">
+				{@render Link(link.href, link.label, link.icon)}
+			</li>
+		{/each}
 	</ul>
 </header>

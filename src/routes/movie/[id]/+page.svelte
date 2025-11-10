@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
+	import type { sourceOrigins } from '$lib/utils/sources';
 	import { capitalize, outsideClick, SourceBuilder, watchedStore } from '$lib';
 	import { onMount } from 'svelte';
 	import { Icon } from '$lib/icons';
@@ -16,11 +17,12 @@
 	const title = movie?.originalTitleText?.text ?? 'Untitled';
 	const year = movie?.releaseDate?.year;
 	const genres = movie?.titleGenres?.genres?.map((g) => g?.genre?.text);
+	const plotText = movie.plot?.plotText?.plainText ?? 'No plot available';
 	const directors = movie?.directors.edges;
 	const rating = movie?.ratingsSummary?.aggregateRating;
 
 	let isServersMenuActive = $state(false);
-	let defaultSource = $state<keyof typeof SourceBuilder.ORIGINS>('vidsrc');
+	let defaultSource = $state<sourceOrigins>('vidsrc');
 
 	let iframeSrc = $derived.by(() => {
 		return SourceBuilder.build(defaultSource, params.id);
@@ -117,8 +119,8 @@
 		<div>
 			<h1 class="text-4xl font-bold">{title}</h1>
 			<p class="ml-1 text-sm text-primary">
-				{#if data.movie.plot.plotText.plainText?.length}
-					{data.movie.plot.plotText.plainText}
+				{#if plotText?.length}
+					{plotText}
 				{:else}
 					<Loader class="mt-2 ml-12" />
 				{/if}

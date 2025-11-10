@@ -47,9 +47,8 @@
 				i.e: automatic subtitles & auto next feature (releasing soon [experimental])
 			</span>
 			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add more sources for medias (very high)
+				<Icon.Linear.Check class="inline-block size-6 fill-brand-primary-200" /> Add more sources for medias (very high)
 			</span>
-
 			<span title="Implemented">
 				<Icon.Linear.Check class="inline-block size-6 fill-brand-primary-200" /> Add automatic subtitles option in series (experimental)
 			</span>
