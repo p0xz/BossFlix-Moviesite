@@ -31,11 +31,20 @@
 			runtime: movie?.runtime?.seconds ?? 0,
 		});
 	});
+	let messages = $state<any[]>([]);
 </script>
 
 <svelte:head>
 	<title>BossFlix • {title}</title>
 </svelte:head>
+
+<svelte:window
+	onmessage={(event) => {
+		messages.push(event.data);
+
+		if (messages.length > 6) messages.splice(1, 1);
+	}}
+/>
 
 <div class="mx-auto flex min-h-screen w-[90%] flex-col justify-center md:w-3/4 2xl:w-1/2">
 	<header class="self-center">
@@ -54,6 +63,7 @@
 			allowfullscreen
 		></iframe>
 	</div>
+	{JSON.stringify(messages, null, 2)}
 	<div class="flex items-center justify-between gap-x-4">
 		<div>
 			<h2 class="mt-4 text-[clamp(1.25rem,3vw+1rem,2rem)] leading-10 font-medium">

@@ -47,13 +47,24 @@ const queries = {
 					seasons @include(if: $full) {
 						number
 					}
-					episodes(first: $first, after: $after, filter: { includeSeasons: [$season] })
-						@include(if: $includeEpisodes) {
+					seasonEpisodes: episodes(
+						first: $first
+						after: $after
+						filter: { includeSeasons: [$season] }
+					) @include(if: $includeEpisodes) {
+						pageInfo {
+							hasNextPage
+							endCursor
+						}
 						edges {
 							node {
 								...EpisodeFields
 							}
 						}
+					}
+
+					allEpisodesTotal: episodes(first: 0) @include(if: $full) {
+						total
 					}
 				}
 			}
@@ -192,19 +203,22 @@ const queries = {
 					hasNextPage
 					endCursor
 				}
+
 				edges {
 					node {
 						entity {
 							... on Title {
 								id
+								releaseDate {
+									day
+									month
+									year
+								}
 								titleText {
 									text
 								}
 								ratingsSummary {
 									aggregateRating
-								}
-								releaseYear {
-									year
 								}
 								titleType {
 									id
@@ -216,6 +230,7 @@ const queries = {
 								runtime {
 									seconds
 								}
+
 								episodes {
 									displayableSeasons(first: 0) {
 										# often exposes a count on the connection

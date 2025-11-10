@@ -6,7 +6,7 @@
 		event: (
 			event: MouseEvent & {
 				currentTarget: EventTarget & HTMLButtonElement;
-			}
+			},
 		) => void;
 		condition: boolean;
 	}
@@ -16,7 +16,9 @@
 
 <button type="button" onclick={event} {...props}>
 	<div
-		class="flex h-full cursor-pointer items-center justify-center gap-x-2 rounded-md bg-brand-primary-150/15 p-3 text-sm"
+		class="flex h-10 w-full cursor-pointer gap-x-2
+			       rounded-md bg-brand-primary-150/15 px-3 py-2 text-sm text-primary shadow-lg
+			       ring-1 ring-white/10 backdrop-blur-md hover:bg-brand-primary-150/25 hover:text-neutral-100"
 	>
 		<p>{@render children?.()}</p>
 

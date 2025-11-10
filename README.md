@@ -50,14 +50,16 @@ npm run build
 bun run build
 ```
 
-## TODO
+## TODO / Roadmap
 
-Feature / Priority
+(Feature / Priority)
 
-- [ ] Add filters for homepage search (mid)
+- [ ] Add custom player unifying all the sources (low [might move up later])
+- [ ] Add watch2gether feature (low [might move up later])
 - [ ] Add Movies & Series pages (low)
 - [ ] Add transfer of watched / favourite (low)
 - [ ] Add option to show recommendation (low)
+- [ ] Add filters for homepage search (mid)
 - [ ] Add settings with default subtitles language option (mid)
 - [ ] Add library sourced from opensubtitles so that users can attach another subtitles to their movie/show if the current list isn't working properly (mid)
 - [ ] Add status to series if it's airing or ended (high)

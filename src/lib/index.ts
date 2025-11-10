@@ -1,5 +1,15 @@
 // place files you want to import through the `$lib` alias in this folder.
-export { debounce, arraysEqual, truncate, fixDigits, outsideClick, formatRuntime } from './utils';
+export {
+	debounce,
+	arraysEqual,
+	truncate,
+	fixDigits,
+	outsideClick,
+	formatRuntime,
+	isReleased,
+	capitalize,
+} from './utils/global';
+export { SourceBuilder } from './utils/sources';
 export { queries } from './client-queries';
 export { watchedStore } from './state.svelte';
 export type { Imdb } from './types/types';

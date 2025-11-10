@@ -63,3 +63,13 @@ export function formatRuntime(seconds: number) {
 		minutes: Math.floor((seconds % 3600) / 60),
 	});
 }
+
+export function isReleased(dates: { year: number; month: number; day: number }) {
+	const now = new Date();
+	const releaseDate = new Date(dates?.year, dates?.month - 1, dates?.day);
+	return releaseDate <= now;
+}
+
+export function capitalize(value: string) {
+	return String(value).charAt(0).toUpperCase() + value.slice(1);
+}

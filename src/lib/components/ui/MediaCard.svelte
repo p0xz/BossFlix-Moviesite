@@ -3,7 +3,7 @@
 		posterUrl: string;
 		title: string;
 		genres: string;
-		rating: number;
+		rating: number | string;
 		labels?: Array<string>;
 		maskPercentage?: number;
 	}
@@ -11,9 +11,7 @@
 	let { posterUrl, title, genres, rating, labels = [], maskPercentage = 80 }: Props = $props();
 </script>
 
-<div
-	class="relative aspect-2/3 w-80 overflow-hidden rounded-3xl bg-neutral-900 shadow-xl transition-transform hover:scale-105"
->
+<div class="relative aspect-2/3 w-80 overflow-hidden rounded-3xl bg-neutral-900 shadow-xl">
 	<img
 		src={posterUrl}
 		loading="lazy"
@@ -40,7 +38,9 @@
 		<div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
 			<span class="rounded-md bg-black/30 px-2 py-0.5">★ {rating}</span>
 			{#each labels as label, index (index)}
-				<span class="rounded-md bg-black/30 px-2 py-0.5">{label}</span>
+				{#if label}
+					<span class="rounded-md bg-black/30 px-2 py-0.5">{label}</span>
+				{/if}
 			{/each}
 		</div>
 	</div>

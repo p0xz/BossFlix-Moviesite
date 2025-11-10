@@ -5,6 +5,14 @@ import FilmTape_Linear from './Linear/Audiovisual/FilmTape.svelte';
 import TV_Linear from './Linear/Audiovisual/TV.svelte';
 import Gear_Linear from './Linear/Basic/Gear.svelte';
 import Eye_Linear from './Linear/Security/Eye.svelte';
+import Camera_Linear from './Linear/Images/Camera.svelte';
+import Server_Linear from './Linear/Security/Server.svelte';
+import Check_Linear from './Linear/Basic/Check.svelte';
+import Slash_Linear from './Linear/Basic/Slash.svelte';
+// Filled
+import Server_Filled from './Filled/Security/Server.svelte';
+// FA
+import CameraMovie_Fa from './Fa/CameraMovie.svelte';
 
 export const Icon = {
 	Linear: {
@@ -14,11 +22,20 @@ export const Icon = {
 		TV: TV_Linear,
 		Gear: Gear_Linear,
 		Eye: Eye_Linear,
+		Camera: Camera_Linear,
+		Server: Server_Linear,
+		Check: Check_Linear,
+		Slash: Slash_Linear,
 	},
 	Duotone: {
 		Info: Info_Duotone,
 	},
-	Filled: {},
+	Filled: {
+		Server: Server_Filled,
+	},
+	Fa: {
+		CameraMovie: CameraMovie_Fa,
+	},
 } as const;
 
 export type IconLinearName = keyof typeof Icon.Linear;

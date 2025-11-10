@@ -8,26 +8,21 @@
 	<title>BossFlix • History</title>
 </svelte:head>
 
-<div
-	class="container mx-auto grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] place-items-center gap-8 py-8"
->
+<div class="container mx-auto grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] place-items-center gap-8 py-8">
 	{#each watchedStore.state.entries() as [id, v]}
 		{@const totalEpisodes = v[0].totalEpisodes}
 		{@const watchedEntries = v[0]}
 		{@const titleType = watchedEntries.titleType.toLowerCase()}
 		{@const isSeries = titleType.includes('series')}
 		{@const watchedCount = isSeries
-			? Array.from((v[1] as SvelteMap<number, SvelteSet<number>>).values()).reduce(
-					(acc, set) => acc + set.size,
-					0,
-				)
+			? Array.from((v[1] as SvelteMap<number, SvelteSet<number>>).values()).reduce((acc, set) => acc + set.size, 0)
 			: 0}
 		{@const seasonsMap = v[1]}
 		{@const lastWatched = watchedStore.lastWatched(id)}
 		{@const totalSeasons = watchedEntries.totalSeasons}
 		<a
 			href={`/${isSeries ? 'series' : 'movie'}/${id}${isSeries ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
-			class=""
+			class="transition-transform hover:scale-105"
 		>
 			<MediaCard
 				posterUrl={watchedEntries.posterUrl}
@@ -45,7 +40,7 @@
 		</a>
 	{/each}
 
-	<button
+	<!-- <button
 		class="bg-beta absolute bottom-24 ml-1 cursor-pointer rounded px-2 py-0.5 font-Poppins font-medium"
 		onclick={() => {
 			watchedStore.reset();
@@ -53,7 +48,7 @@
 		}}
 	>
 		reset
-	</button>
+	</button> -->
 </div>
 
 <style>

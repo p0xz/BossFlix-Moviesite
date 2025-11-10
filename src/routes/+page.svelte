@@ -2,7 +2,7 @@
 	import { fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
 	import { quintIn, quintOut } from 'svelte/easing';
-	import { formatRuntime, watchedStore, debounce } from '$lib';
+	import { formatRuntime, watchedStore, debounce, isReleased } from '$lib';
 	import { REQUIRED_LENGTH_TO_SUBMIT } from '$lib/constants';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
@@ -18,9 +18,9 @@
 		const currentTarget = event.currentTarget as HTMLInputElement;
 		const query = currentTarget.value.trim();
 
-		if (!query.trim().length) return;
+		if (!query.trim().length || query === previousInputValue) return;
 
-		if (query.length < REQUIRED_LENGTH_TO_SUBMIT || query === previousInputValue) {
+		if (query.length < REQUIRED_LENGTH_TO_SUBMIT) {
 			previousInputValue = query;
 
 			page.url.searchParams.set('query', '');
@@ -85,7 +85,11 @@
 				class="w-fit text-center wrap-break-word transition-transform hover:scale-105"
 			>
 				<a
-					href={`/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${searchResult.node.entity.id}${titleType === 'tvSeries' ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
+					href="/{titleType === 'movie' || titleType === 'tvMovie'
+						? 'movie'
+						: 'series'}/{searchResult.node.entity.id}{titleType === 'tvSeries'
+						? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}`
+						: ''}"
 				>
 					<MediaCard
 						posterUrl={entity.primaryImage?.url ?? ''}
@@ -94,9 +98,12 @@
 							.map((g) => g.genre.text)
 							.slice(0, 3)
 							.join(' • ')}
-						rating={entity.ratingsSummary?.aggregateRating ?? 0}
+						rating={entity.ratingsSummary?.aggregateRating ?? `N/A`}
 						labels={[
-							`${totalSeasons ? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}` : formatRuntime(entity?.runtime?.seconds || 0)}`,
+							totalSeasons
+								? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}`
+								: formatRuntime(entity?.runtime?.seconds || 0),
+							isReleased(entity.releaseDate || {}) ? '' : 'upcoming',
 						]}
 					/>
 				</a>

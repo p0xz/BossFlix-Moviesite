@@ -1,23 +1,20 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
+	import type { PlayerMessageEmitter } from '$lib/types/types';
+	import type { sourceOrigins } from '$lib/utils/sources';
 	import { page } from '$app/state';
 	import { onMount, untrack } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { goto, invalidate } from '$app/navigation';
-	import { fixDigits, truncate, watchedStore, type Imdb } from '$lib';
-	import { Switch, ImdbLogo, SeasonMenu, EpisodesMenu, Loader } from '$lib/components/ui';
-
-	type Binary = 1 | 0;
-	interface PlayerOptions {
-		autoPlay: Binary;
-		autoNext: Binary;
-		autoSubtitles: string;
-	}
+	import { capitalize, fixDigits, outsideClick, SourceBuilder, watchedStore, type Imdb } from '$lib';
+	import { EpisodesMenu, Loader, MediaCard, DropdownMenu } from '$lib/components/ui';
+	import { Icon } from '$lib/icons';
+	import OptionsDropdown from '$lib/components/ui/OptionsDropdown.svelte';
+	import { isPlayerEvent, playerJsMessageEmitter } from '$lib/utils/videoPlayer';
 
 	let { data, params }: PageProps = $props();
 
 	const CHUNK = 30;
-	const TARGET_ORIGIN = 'https://vidsrc-embed.ru';
 	const title = data?.seriesMeta?.originalTitleText?.text ?? 'Untitled';
 	const year = data.seriesMeta?.releaseDate?.year;
 	const searchParams = Object.fromEntries(page.url.searchParams.entries()) as {
@@ -25,23 +22,36 @@
 		episode?: string;
 	};
 
-	type EdgeList = Imdb.Series['episodes']['episodes']['edges'];
-	let nodes = new SvelteMap<number, EdgeList>();
+	type EdgeList = Imdb.Series['episodes']['seasonEpisodes']['edges'];
+	const nodes = new SvelteMap<number, EdgeList>();
 
 	let entry = $state({
-		season: Math.max(Number(searchParams?.season) || 1),
-		episode: Math.max(Number(searchParams?.episode) || 1),
+		season: Math.max(Number(page.url.searchParams.get('season')) || 1),
+		episode: Math.max(Number(page.url.searchParams.get('episode')) || 1),
 	});
 
-	let playerOptions = $state<PlayerOptions>({
-		autoPlay: 1,
-		autoNext: 1,
-		autoSubtitles: '',
+	let defaultSource = $state<keyof typeof SourceBuilder.ORIGINS>('vidsrc');
+
+	let playerOptions = $state({
+		autoPlay: true,
+		autoNext: true,
+		autoSubtitles: false,
 	});
 
-	let iframeSrc = $state('');
 	let isSeasonMenuActive = $state(false);
 	let isEpisodeMenuActive = $state(false);
+	let isServersMenuActive = $state(false);
+	let isPlayerSettingsMenuActive = $state(false);
+
+	let iframeSrc = $derived.by(() => {
+		return SourceBuilder.build(defaultSource, params.id, {
+			autoNext: playerOptions.autoNext,
+			autoPlay: playerOptions.autoPlay,
+			season: entry.season,
+			episode: entry.episode,
+		});
+	});
+
 	let episodeChunk = $derived(Math.max(0, Math.floor((entry.episode - 1) / CHUNK)));
 
 	let iframeRef = $state<HTMLIFrameElement>();
@@ -73,14 +83,8 @@
 	);
 
 	const currentRangeLabel = $derived(
-		totalEpisodes
-			? `${fixDigits(episodeChunk * CHUNK + 1)}-${Math.min((episodeChunk + 1) * CHUNK, totalEpisodes)}`
-			: '',
+		totalEpisodes ? `${fixDigits(episodeChunk * CHUNK + 1)}-${Math.min((episodeChunk + 1) * CHUNK, totalEpisodes)}` : '',
 	);
-
-	function buildMediaSource(id: string, season: number, episode: number) {
-		return `${TARGET_ORIGIN}/embed/tv?imdb=${id}&season=${season}&episode=${episode}&autonext=${playerOptions.autoNext}&autoplay=${playerOptions.autoPlay}${playerOptions.autoSubtitles ? `&ds_lang=${playerOptions.autoSubtitles}` : ''}`;
-	}
 
 	async function updateURL(season: number, episode: number) {
 		return goto(`/series/${params.id}?season=${season}&episode=${episode}`, {
@@ -96,7 +100,10 @@
 			episodeChunk += 1;
 		}
 
+		watchedStore.markEpisode(params.id, entry.season, [entry.episode, episode]);
+
 		entry.episode = episode;
+
 		updateURL(entry.season, entry.episode);
 	}
 
@@ -108,8 +115,11 @@
 
 		entry.season = season;
 		entry.episode = 1;
-		episodeChunk = 0;
 		isSeasonMenuActive = false;
+
+		watchedStore.init(params.id, entry.season);
+		watchedStore.markEpisode(params.id, entry.season, entry.episode);
+
 		await updateURL(entry.season, entry.episode);
 
 		if (!nodes.has(season)) {
@@ -118,10 +128,11 @@
 	}
 
 	$effect(() => {
-		if (data.seriesEpisodes.episodes) {
+		if (data.seriesEpisodes.seasonEpisodes) {
 			const season = untrack(() => entry.season);
 
-			nodes.set(season, data.seriesEpisodes.episodes.edges);
+			nodes.set(season, data.seriesEpisodes.seasonEpisodes.edges);
+			console.log(nodes);
 		}
 	});
 
@@ -130,25 +141,9 @@
 			updateURL(entry.season, entry.episode);
 		}
 
-		if (data.seriesEpisodes?.episodes?.edges) {
-			nodes.set(entry.season, data.seriesEpisodes.episodes.edges);
-		}
-
-		// console.log(data.seriesMeta.episodes.seasons?.length);
-
-		iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-
 		watchedStore.init(params.id, entry.season).markEpisode(params.id, entry.season, entry.episode);
 
 		if (watchedStore.totalEpisodes(params.id) === 0 || watchedStore.areEntriesEmpty(params.id)) {
-			const response = await fetch('/series', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ id: params.id }),
-			}).then((res) => res.json() as Promise<{ totalEpisodes: number }>);
-
 			watchedStore.setEntries(params.id, {
 				posterUrl: data.seriesMeta?.primaryImage?.url || '',
 				title,
@@ -156,172 +151,148 @@
 				titleType: 'series',
 				rating: data.seriesMeta?.ratingsSummary?.aggregateRating || 0,
 				genres: data.seriesMeta.titleGenres.genres.map((g) => g.genre.text) || [],
-				totalEpisodes: response.totalEpisodes || 0,
+				totalEpisodes: data.seriesMeta.episodes.allEpisodesTotal.total || 0,
 				totalSeasons: data.seriesMeta.episodes.seasons?.length || 0,
 			});
 		}
 	});
+
+	function handleMessage(
+		event: MessageEvent<any> & {
+			currentTarget: EventTarget & Window;
+		},
+	) {
+		const incomingMessage = <PlayerMessageEmitter.PlayerJS.PlayerEventData>event.data;
+
+		const isEventSubtitle =
+			!isPlayerEvent(incomingMessage) && (incomingMessage.event === 'subtitle' || incomingMessage.event === 'subtitles');
+
+		if (isEventSubtitle && incomingMessage.data !== 'off' && !playerOptions.autoSubtitles && defaultSource === 'vidsrc') {
+			playerJsMessageEmitter(iframeRef?.contentWindow, 'subtitle', -1);
+		}
+
+		if (isPlayerEvent(incomingMessage) && incomingMessage.data.episode !== entry.episode && playerOptions.autoNext) {
+			updateEpisode(incomingMessage.data?.episode ?? entry.episode);
+
+			if (incomingMessage.data?.season === entry.season) return;
+
+			const season = incomingMessage.data?.season ?? entry.season;
+
+			updateSeason(season);
+		}
+	}
 </script>
 
-<svelte:window
-	onmessage={(event) => {
-		interface EventData {
-			type: 'PLAYER_EVENT';
-			data?:
-				| {
-						imdbId: string;
-						tmdbId: number;
-						type: string;
-						season: number;
-						episode: number;
-						currentTime: number;
-						duration: number;
-						// There are more events, but just added these for now since I don't see a point to add more
-						// event: 'ended' | 'end' | 'finished' | 'pause' | 'paused' | 'fileend' | 'subtitle';
-				  }
-				| string;
-			event:
-				| 'ended'
-				| 'end'
-				| 'finished'
-				| 'pause'
-				| 'paused'
-				| 'fileend'
-				| 'subtitle'
-				| 'subtitles';
-		}
-
-		const eventData = <EventData>event.data;
-
-		const playerData = eventData?.data;
-
-		if (
-			(eventData.event === 'subtitles' || eventData.event === 'subtitle') &&
-			typeof playerData === 'string' &&
-			playerData.toLowerCase() !== 'off' &&
-			!playerOptions.autoSubtitles.length
-		) {
-			iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: -1 }, TARGET_ORIGIN);
-		}
-
-		if (eventData?.type !== 'PLAYER_EVENT' || !eventData?.data) return;
-
-		if (
-			typeof eventData.data === 'object' &&
-			eventData.data?.episode !== entry.episode &&
-			playerOptions.autoNext
-		) {
-			if (eventData.data?.season !== entry.season) {
-				watchedStore.init(params.id, eventData.data.season);
-				watchedStore.markEpisode(params.id, eventData.data.season, 1);
-				updateSeason(eventData.data.season);
-			}
-
-			watchedStore.markEpisode(params.id, entry.season, entry.episode);
-			updateEpisode(eventData.data?.episode);
-		}
-	}}
-/>
+<svelte:window onmessage={handleMessage} />
 
 <svelte:head>
 	<title>BossFlix • {title}</title>
 </svelte:head>
 
-<div class="mx-auto flex w-[90%] max-w-5xl flex-col justify-center py-4">
+<div class="container mx-auto flex flex-col justify-center py-4">
 	<header class="self-center">
 		<a href="/">
 			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 		</a>
 	</header>
-	<div class="aspect-video w-full overflow-hidden rounded-lg bg-surface">
+	<div class="relative grid w-full grid-cols-[1fr_auto] overflow-hidden rounded-lg bg-surface">
 		<iframe
 			bind:this={iframeRef}
 			title={`${title}${year ? ` (${year})` : ''} — player`}
 			src={iframeSrc}
-			class="h-full w-full"
+			class="aspect-video"
 			loading="lazy"
-			referrerpolicy="origin"
+			referrerpolicy="no-referrer"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
 		></iframe>
+		<div
+			class="pointer-events-none relative"
+			{@attach outsideClick(() => {
+				isServersMenuActive = false;
+			})}
+		>
+			<button
+				class="pointer-events-auto absolute top-3 right-3 flex cursor-pointer items-center gap-x-1 rounded-md bg-brand-primary-150/15 px-2.5 py-1.5
+           text-xs text-white ring-1 ring-white/20 backdrop-blur hover:bg-brand-primary-150/25"
+				onclick={() => (isServersMenuActive = !isServersMenuActive)}
+				aria-haspopup="menu"
+				aria-expanded={isServersMenuActive}
+			>
+				<Icon.Linear.Server class="size-6 shrink-0 fill-brand-primary-150/75" />
+				Servers
+			</button>
+
+			{#if isServersMenuActive}
+				<div
+					role="menu"
+					class="pointer-events-auto absolute top-14 right-3 z-10 w-48 overflow-hidden rounded-lg
+             bg-brand-primary-150/15 shadow-2xl ring-2 ring-white/10 backdrop-blur-2xl"
+				>
+					{#each Object.keys(SourceBuilder.ORIGINS) as key (key)}
+						<button
+							role="menuitem"
+							class="w-full cursor-pointer rounded-md p-3 px-3 py-2 text-left text-sm hover:bg-brand-primary-150/25"
+							onclick={() => {
+								defaultSource = key as keyof typeof SourceBuilder.ORIGINS;
+
+								isServersMenuActive = false;
+							}}
+						>
+							{capitalize(key)}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	<div class="grid grid-cols-[auto_1fr_auto] gap-x-4 sm:grid-cols-[auto_1fr_15rem]">
-		<div
-			class="col-span-full my-4 grid grid-cols-subgrid items-center gap-2 max-sm:grid-rows-2 sm:flex-row sm:justify-between"
-		>
-			<div
-				class="col-span-2 grid-cols-2 gap-x-4 text-center max-md:grid max-sm:col-span-full sm:ms-auto"
-			>
-				<Switch
-					condition={Boolean(playerOptions.autoSubtitles.length)}
-					event={() => {
-						if (playerOptions.autoSubtitles.length) {
-							playerOptions.autoSubtitles = '';
-							iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: -1 }, TARGET_ORIGIN);
-						} else {
-							iframeRef?.contentWindow?.postMessage({ api: 'subtitle', set: 1 }, TARGET_ORIGIN);
-							playerOptions.autoSubtitles = 'en';
-							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-						}
+		<div class="col-span-full mb-4 grid grid-cols-subgrid items-center gap-3">
+			<div class="col-span-1 row-start-2 space-x-1">
+				<OptionsDropdown
+					bind:isMenuOpen={isPlayerSettingsMenuActive}
+					bind:items={playerOptions}
+					keyWrapper={(key) => {
+						return key.toLowerCase().startsWith('auto') ? capitalize(key).split('').toSpliced(4, 0, ' ').join('') : capitalize(key);
 					}}
 				>
-					Auto Subtitles
-					<span
-						class="text-brand-yellow-100"
-						title="Due to issues that are caused by bad timestamped subtitles this feature is marked as an experimental"
-					>
-						(experimental)
-					</span>
-				</Switch>
-				<Switch
-					condition={playerOptions.autoNext === 1}
-					event={() => {
-						if (playerOptions.autoNext === 1) playerOptions.autoNext = 0;
-						else playerOptions.autoNext = 1;
-
-						iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-					}}
-				>
-					Auto Next
-				</Switch>
+					<Icon.Linear.Gear class="size-6 fill-brand-primary-150/75" />
+					<span>Player settings</span>
+				</OptionsDropdown>
 			</div>
 
-			<SeasonMenu
-				{seasons}
-				bind:isMenuOpen={isSeasonMenuActive}
-				currentSeason={entry.season}
-				onSeasonSelect={(season) => {
-					watchedStore.init(params.id, season);
-					watchedStore.markEpisode(params.id, season, 1);
-					updateSeason(season);
-					iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-				}}
-			/>
+			<div class="col-start-3 row-start-2 flex h-full w-full justify-center gap-x-2">
+				<DropdownMenu
+					items={seasons}
+					keyProp="number"
+					bind:isMenuOpen={isSeasonMenuActive}
+					label="Season"
+					fallback="No seasons available."
+					onSelect={(season) => updateSeason(season.number)}
+				>
+					Season {entry.season}
+				</DropdownMenu>
+			</div>
 		</div>
 
 		<div
 			class="grid grid-cols-subgrid gap-y-4 max-sm:col-span-3 max-sm:row-start-3 max-sm:mt-4 max-xs:grid-rows-[auto_auto] max-xs:gap-y-4 2md:col-span-2"
 		>
-			<img
-				src={data.seriesMeta?.primaryImage?.url}
-				draggable="false"
-				alt={title}
-				class="w-58 object-cover max-2md:order-2 max-2md:mt-4 max-sm:col-start-1 max-sm:mt-0 max-xs:row-start-2"
+			<MediaCard
+				posterUrl={data.seriesMeta?.primaryImage?.url ?? ''}
+				{title}
+				genres={data.seriesMeta.titleGenres.genres
+					.map((g) => g.genre.text)
+					.slice(0, 3)
+					.join(' • ')}
+				rating={data.seriesMeta?.ratingsSummary?.aggregateRating ?? `N/A`}
 			/>
-			<div class="max-xs:col-span-full">
-				<h2 class="text-[clamp(1.25rem,3vw+1rem,2rem)] font-medium">{title}</h2>
-				<div class="flex text-center">
-					<ImdbLogo class="h-8 w-16" />
-					<span
-						class="inline-block w-16 rounded-r-sm bg-brand-primary-150/15 py-0.5 text-lg font-semibold"
-					>
-						{data.seriesMeta?.ratingsSummary?.aggregateRating}
-					</span>
-				</div>
-				<p class="mt-2 ml-0.5 text-sm text-primary">
+			<div class="mt-2">
+				<h1 class="text-4xl font-bold">{title}</h1>
+				<p class="ml-1 text-sm text-primary">
 					{#if episodePlot?.length}
-						{truncate(episodePlot, 450)}
+						{episodePlot}
 					{:else}
 						<Loader class="mt-2 ml-12" />
 					{/if}
@@ -352,12 +323,7 @@
 
 					<button
 						type="button"
-						onclick={() => {
-							watchedStore.markEpisode(params.id, entry.season, [entry.episode, episodeNumber]);
-							updateEpisode(episodeNumber);
-
-							iframeSrc = buildMediaSource(params.id, entry.season, entry.episode);
-						}}
+						onclick={() => updateEpisode(episodeNumber)}
 						class={`size-10 cursor-pointer rounded border-neutral-600 text-primary/40 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850
 						${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : watchedStore.isEpisodeMarked(params.id, entry.season, episodeNumber) ? 'bg-brand-yellow-80/50 text-[#141312]!' : 'bg-[#171926] hover:ring-neutral-500'}
 						text-center align-middle leading-10 font-semibold`}
