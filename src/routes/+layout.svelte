@@ -65,7 +65,7 @@
 
 {#snippet Link(href: string, label: string, icon: Component<Record<string, any>, {}, ''>)}
 	{@const Component = icon}
-	<a {href} class="flex items-center justify-center gap-2 hover:text-neutral-200 hover:[&>svg]:fill-white">
+	<a {href} aria-label={label} class="flex items-center justify-center gap-2 hover:text-neutral-200 hover:[&>svg]:fill-white">
 		<Component class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
 		<span class="hidden sm:inline"> {label} </span>
 	</a>
