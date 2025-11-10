@@ -188,4 +188,5 @@
 		url('https://cdn.bossflix.org/fonts/chewy/Chewy-Regular.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
+	font-display: swap;
 }
