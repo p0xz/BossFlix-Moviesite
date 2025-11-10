@@ -90,6 +90,11 @@ export namespace Imdb {
 	export interface Movie extends _MediaInfo {
 		primaryImage: primaryImage;
 		runtime: runtime;
+		plot: {
+			plotText: {
+				plainText: string;
+			};
+		};
 	}
 
 	export interface Series extends _MediaInfo {
@@ -280,8 +285,7 @@ export namespace PlayerMessageEmitter {
 			autonext: 0 | 1; // off / on
 		}
 
-		export type ArgumentForCommand<C extends PlayerEventCommand> =
-			C extends keyof CommandArgumentMap ? CommandArgumentMap[C] : unknown;
+		export type ArgumentForCommand<C extends PlayerEventCommand> = C extends keyof CommandArgumentMap ? CommandArgumentMap[C] : unknown;
 	}
 
 	// Video Players by sources

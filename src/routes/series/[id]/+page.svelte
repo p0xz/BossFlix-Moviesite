@@ -30,7 +30,7 @@
 		episode: Math.max(Number(page.url.searchParams.get('episode')) || 1),
 	});
 
-	let defaultSource = $state<keyof typeof SourceBuilder.ORIGINS>('vidsrc');
+	let defaultSource = $state<sourceOrigins>('vidsrc');
 
 	let playerOptions = $state({
 		autoPlay: true,
@@ -195,7 +195,7 @@
 			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 		</a>
 	</header>
-	<div class="relative grid w-full grid-cols-[1fr_auto] overflow-hidden rounded-lg bg-surface">
+	<div class="relative w-full overflow-hidden rounded-lg bg-surface">
 		<iframe
 			bind:this={iframeRef}
 			title={`${title}${year ? ` (${year})` : ''} — player`}
@@ -207,7 +207,7 @@
 			allowfullscreen
 		></iframe>
 		<div
-			class="pointer-events-none relative"
+			class="pointer-events-none"
 			{@attach outsideClick(() => {
 				isServersMenuActive = false;
 			})}

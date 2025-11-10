@@ -47,11 +47,7 @@ const queries = {
 					seasons @include(if: $full) {
 						number
 					}
-					seasonEpisodes: episodes(
-						first: $first
-						after: $after
-						filter: { includeSeasons: [$season] }
-					) @include(if: $includeEpisodes) {
+					seasonEpisodes: episodes(first: $first, after: $after, filter: { includeSeasons: [$season] }) @include(if: $includeEpisodes) {
 						pageInfo {
 							hasNextPage
 							endCursor
@@ -120,6 +116,11 @@ const queries = {
 				}
 				runtime {
 					seconds
+				}
+				plot {
+					plotText {
+						plainText
+					}
 				}
 				directors: credits(first: 5, filter: { categories: ["director"] }) {
 					edges {
@@ -192,12 +193,7 @@ const queries = {
 			mainSearch(
 				first: $first
 				after: $after
-				options: {
-					searchTerm: $searchTerm
-					isExactMatch: $exact
-					type: TITLE
-					titleSearchOptions: { type: $titleTypes }
-				}
+				options: { searchTerm: $searchTerm, isExactMatch: $exact, type: TITLE, titleSearchOptions: { type: $titleTypes } }
 			) {
 				pageInfo {
 					hasNextPage
