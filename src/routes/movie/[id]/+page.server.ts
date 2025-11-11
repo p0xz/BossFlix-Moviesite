@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { queries, IMDB_API_URL, type Imdb } from '$lib';
+import { gq, IMDB_API_URL } from '$lib';
+import { type Imdb } from '$lib/types';
 
 export const load = (async ({ params }) => {
 	const variables = {
@@ -12,7 +13,7 @@ export const load = (async ({ params }) => {
 			'content-type': 'application/json',
 			'x-imdb-user-language': 'en-US',
 		},
-		body: JSON.stringify({ query: queries.title, variables }),
+		body: JSON.stringify({ query: gq.title, variables }),
 		method: 'POST',
 	}).then((res) => res.json() as Promise<{ data: { title: Imdb.Movie } }>);
 

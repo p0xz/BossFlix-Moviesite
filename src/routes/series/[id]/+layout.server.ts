@@ -1,5 +1,6 @@
 import type { LayoutServerLoad } from './$types';
-import { queries, type Imdb } from '$lib';
+import { gq } from '$lib';
+import { type Imdb } from '$lib/types';
 
 export const load = (async ({ params, url, fetch, untrack }) => {
 	const season = untrack(() => url.searchParams.get('season') ?? '1');
@@ -23,7 +24,7 @@ export const load = (async ({ params, url, fetch, untrack }) => {
 			'x-imdb-user-language': 'en-US',
 			'Cache-Control': 'no-cache',
 		},
-		body: JSON.stringify({ query: queries.seasonEpisodes, variables }),
+		body: JSON.stringify({ query: gq.seasonEpisodes, variables }),
 		method: 'POST',
 	}).then(
 		(res) =>

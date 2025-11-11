@@ -1,4 +1,4 @@
-const queries = {
+const gq = {
 	seasonEpisodes: /* GraphQL */ `
 		query GetSeasonEpisodes(
 			$id: ID!
@@ -249,4 +249,4 @@ const queries = {
 	`,
 };
 
-export { queries };
+export { gq };

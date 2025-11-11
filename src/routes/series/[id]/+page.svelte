@@ -1,16 +1,16 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import type { PlayerMessageEmitter } from '$lib/types/types';
+	import type { PlayerMessageEmitter } from '$lib/types';
 	import type { sourceOrigins } from '$lib/utils/sources';
+	import { isPlayerEvent, playerJsMessageEmitter } from '$lib/utils/videoPlayer';
+	import { type Imdb } from '$lib/types';
 	import { page } from '$app/state';
 	import { onMount, untrack } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { goto, invalidate } from '$app/navigation';
-	import { capitalize, fixDigits, outsideClick, SourceBuilder, watchedStore, type Imdb } from '$lib';
-	import { EpisodesMenu, Loader, MediaCard, DropdownMenu } from '$lib/components/ui';
+	import { capitalize, fixDigits, outsideClick, SourceBuilder, watchedStore } from '$lib';
+	import { EpisodesMenu, Loader, MediaCard, DropdownMenu, OptionsDropdown } from '$lib/components/ui';
 	import { Icon } from '$lib/icons';
-	import OptionsDropdown from '$lib/components/ui/OptionsDropdown.svelte';
-	import { isPlayerEvent, playerJsMessageEmitter } from '$lib/utils/videoPlayer';
 
 	let { data, params }: PageProps = $props();
 

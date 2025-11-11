@@ -1,4 +1,4 @@
-import { type PlayerMessageEmitter } from '$lib/types/types';
+import { type PlayerMessageEmitter } from '$lib/types';
 
 export function normalizePlayerInput() {}
 

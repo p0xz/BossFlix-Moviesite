@@ -3,10 +3,8 @@
 	import { flip } from 'svelte/animate';
 	import { quintIn, quintOut } from 'svelte/easing';
 	import { formatRuntime, watchedStore, debounce, isReleased } from '$lib';
-	import { REQUIRED_LENGTH_TO_SUBMIT } from '$lib/constants';
-	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
-	import MediaCard from '$lib/components/ui/MediaCard.svelte';
+	import { REQUIRED_LENGTH_TO_SUBMIT } from '$lib/utils/constants';
+	import { MediaCard } from '$lib/components/ui';
 
 	let { data } = $props();
 
@@ -22,11 +20,6 @@
 
 		if (query.length < REQUIRED_LENGTH_TO_SUBMIT) {
 			previousInputValue = query;
-
-			page.url.searchParams.set('query', '');
-			goto(page.url.pathname + page.url.search, {
-				invalidateAll: true,
-			});
 			return;
 		}
 		previousInputValue = query;
@@ -41,17 +34,9 @@
 <div class="flex min-h-full flex-col items-center justify-center py-8">
 	<h1 class="relative font-Chewy text-5xl font-bold tracking-wider">
 		BossFlix
-		<span
-			class="bg-beta absolute bottom-0 ml-1 rounded px-2 py-0.5 font-Poppins text-sm font-medium"
-		>
-			beta
-		</span>
+		<span class="bg-beta absolute bottom-0 ml-1 rounded px-2 py-0.5 font-Poppins text-sm font-medium"> beta </span>
 	</h1>
-	<form
-		data-sveltekit-keepfocus
-		action="/"
-		class="relative flex flex-col items-center justify-center gap-y-2 py-6"
-	>
+	<form data-sveltekit-keepfocus action="/" class="relative flex flex-col items-center justify-center gap-y-2 py-6">
 		<!-- svelte-ignore a11y_autofocus -->
 		<input
 			type="text"
@@ -70,9 +55,7 @@
 		</p>
 	</form>
 
-	<ul
-		class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]"
-	>
+	<ul class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]">
 		{#each data?.search?.edges?.filter((edge) => edge.node.entity?.primaryImage?.url) as searchResult (searchResult.node.entity.id)}
 			{@const entity = searchResult.node.entity}
 			{@const titleType = entity.titleType.id}
@@ -85,9 +68,8 @@
 				class="w-fit text-center wrap-break-word transition-transform hover:scale-105"
 			>
 				<a
-					href="/{titleType === 'movie' || titleType === 'tvMovie'
-						? 'movie'
-						: 'series'}/{searchResult.node.entity.id}{titleType === 'tvSeries'
+					href="/{titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/{searchResult.node.entity.id}{titleType ===
+					'tvSeries'
 						? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}`
 						: ''}"
 				>
@@ -100,9 +82,7 @@
 							.join(' • ')}
 						rating={entity.ratingsSummary?.aggregateRating ?? `N/A`}
 						labels={[
-							totalSeasons
-								? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}`
-								: formatRuntime(entity?.runtime?.seconds || 0),
+							totalSeasons ? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}` : formatRuntime(entity?.runtime?.seconds || 0),
 							isReleased(entity.releaseDate || {}) ? '' : 'upcoming',
 						]}
 					/>

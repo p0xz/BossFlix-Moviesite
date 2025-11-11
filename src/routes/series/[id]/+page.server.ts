@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { IMDB_API_URL, queries, type Imdb } from '$lib';
+import { IMDB_API_URL, gq } from '$lib';
+import { type Imdb } from '$lib/types';
 
 export const load = (async ({ params, url, fetch, parent, depends, untrack }) => {
 	await parent();
@@ -21,12 +22,9 @@ export const load = (async ({ params, url, fetch, parent, depends, untrack }) =>
 			'x-imdb-user-language': 'en-US',
 			'Cache-Control': 'no-cache',
 		},
-		body: JSON.stringify({ query: queries.seasonEpisodes, variables }),
+		body: JSON.stringify({ query: gq.seasonEpisodes, variables }),
 		method: 'POST',
-	}).then(
-		(res) =>
-			res.json() as Promise<{ data: { title: Omit<Pick<Imdb.Series, 'episodes'>, 'seasons'> } }>,
-	);
+	}).then((res) => res.json() as Promise<{ data: { title: Omit<Pick<Imdb.Series, 'episodes'>, 'seasons'> } }>);
 
 	depends('app:episodes');
 

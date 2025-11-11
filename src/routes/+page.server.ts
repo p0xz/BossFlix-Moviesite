@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { queries, type Imdb } from '$lib';
+import { gq } from '$lib';
+import { type Imdb } from '$lib/types';
 
 export const load = (async ({ url }) => {
 	const query = url.searchParams.get('query') ?? '';
@@ -22,8 +23,8 @@ export const load = (async ({ url }) => {
 			'accept-language': 'en-US,en;q=0.9',
 			'x-imdb-user-language': 'en-US',
 		},
-		body: JSON.stringify({ query: queries.searchTitles, variables }),
+		body: JSON.stringify({ query: gq.searchTitles, variables }),
 	}).then((res) => res.json() as Promise<{ data: { mainSearch: Imdb.Search.MainSearch } }>);
-	// console.dir(response, { depth: Infinity });
+
 	return { search: response.data.mainSearch };
 }) satisfies PageServerLoad;
