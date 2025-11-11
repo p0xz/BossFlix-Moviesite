@@ -76,13 +76,13 @@
 </main>
 
 <header class="flex w-full border-t border-t-brand-primary-150/20 bg-surface px-4 py-6 transition-all duration-600 outline-none">
-	<ul class="container mx-auto flex h-full w-full items-center gap-x-10 text-primary sm:gap-x-8">
+	<ul class="container mx-auto flex h-full w-full items-center gap-x-10 text-primary">
 		<li class="mr-auto">
 			<a href="/" class="font-Chewy text-4xl text-white">BF</a>
 		</li>
 
 		{#each links as link (link.href)}
-			<li class="last:ml-auto">
+			<li class="first:pl-8 last:ml-auto">
 				{@render Link(link.href, link.label, link.icon)}
 			</li>
 		{/each}

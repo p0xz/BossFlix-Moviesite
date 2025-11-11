@@ -47,6 +47,7 @@
 		return SourceBuilder.build(defaultSource, params.id, {
 			autoNext: playerOptions.autoNext,
 			autoPlay: playerOptions.autoPlay,
+			autoSubtitles: playerOptions.autoSubtitles,
 			season: entry.season,
 			episode: entry.episode,
 		});

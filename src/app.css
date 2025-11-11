@@ -50,18 +50,16 @@
 	--breakpoint-xs: 32.5rem; /* 520px */
 	--breakpoint-2md: 56rem; /* 896px */
 	--breakpoint-2lg: 88rem; /* 1408px */
+	--breakpoint-4xl: 160rem; /* 2560px */
 }
 
 @layer base {
 	body {
-		@apply bg-body font-Poppins text-white;
-	}
-
-	html,
-	body {
 		display: grid;
 		grid-template-rows: auto 5.625rem;
 		height: 100svh;
+
+		@apply bg-body font-Poppins text-white;
 	}
 }
 
