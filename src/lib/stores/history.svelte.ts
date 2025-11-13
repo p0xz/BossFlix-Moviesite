@@ -23,6 +23,8 @@ class WatchedStore {
 	}
 
 	markEpisode(imdbId: string, season: number, episode: number | number[]): void {
+		if (!this.#store.has(imdbId)) return;
+
 		const mediaStore = (this.#store.get(imdbId) as WatchedStoreValue)[1];
 		if (Array.isArray(episode)) {
 			episode.forEach((ep) => mediaStore?.get(season)?.add(ep));
@@ -41,6 +43,8 @@ class WatchedStore {
 	}
 
 	setEntries(imdbId: string, entry: WatchedStoreEntries) {
+		if (!this.#store.has(imdbId)) return this;
+
 		const mediaStore = this.#store.get(imdbId) as WatchedStoreValue;
 		mediaStore[0] = entry;
 		return this;
@@ -64,6 +68,8 @@ class WatchedStore {
 	}
 
 	totalEpisodes(imdbId: string) {
+		if (!this.#store.has(imdbId)) return 0;
+
 		const mediaStore = this.#store.get(imdbId) as WatchedStoreValue;
 
 		return mediaStore[0].totalEpisodes;

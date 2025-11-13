@@ -2,7 +2,65 @@
 	import { Icon } from '$lib/icons';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	const roadmap = [
+		{
+			feature: 'Introduce a unified custom player that consolidates all media sources',
+			status: 'in work',
+		},
+		{
+			feature: 'Implement Watch2Gether real-time co-watching functionality',
+			status: 'in work',
+		},
+		{
+			feature: 'Launch dedicated Movies and Series detail pages',
+			status: 'in work',
+		},
+		{
+			feature: 'Enable transfer of watched history and favourites across devices',
+			status: 'in work',
+		},
+		{
+			feature: 'Add personalized recommendation features',
+			status: 'in work',
+		},
+		{
+			feature: 'Introduce advanced filtering options for homepage search',
+			status: 'in work',
+		},
+		{
+			feature: 'Add settings for selecting a default subtitle language',
+			status: 'in work',
+		},
+		{
+			feature:
+				'Integrate OpenSubtitles library to allow users to attach alternative subtitles if existing ones are inaccurate or unavailable',
+			status: 'in work',
+		},
+		{
+			feature: 'Display series status (Airing / Ended) on the series page',
+			status: 'in work',
+		},
+		{
+			feature: 'Synchronize autoplay, automatic subtitles, and other playback settings across all sources',
+			status: 'in work',
+		},
+		{
+			feature: 'Expand the number of available media sources',
+			status: 'implemented',
+		},
+		{
+			feature: 'Add automatic subtitle selection for series',
+			status: 'implemented',
+		},
+		{
+			feature: 'Store and restore last watched season and episode for each series',
+			status: 'implemented',
+		},
+		{
+			feature: 'Add automatic “Next Episode” playback for series',
+			status: 'implemented',
+		},
+	];
 </script>
 
 <svelte:head>
@@ -13,61 +71,50 @@
 	<h1 class="pt-8 font-Chewy text-5xl font-bold tracking-wider">Roadmap</h1>
 
 	<article>
-		<h2 class="mt-1 mb-4">(Feature / Priority)</h2>
-		<!-- TODO: Refactor this into svelte entries -->
-		<p class="flex flex-col items-start">
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add custom player unifying all the sources (low [might move up later])
-			</span>
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add watch2gether feature (low [might move up later])
-			</span>
-			<span title="In work"> <Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add Movies & Series pages (low) </span>
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add transfer of watched / favourite (low)
-			</span>
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add option to show recommendation (low)
-			</span>
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add filters for homepage search (mid)
-			</span>
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add settings with default subtitles language option (mid)
-			</span>
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add library sourced from opensubtitles so that users can attach
-				another subtitles to their movie/show if the current list isn't working properly (mid)
-			</span>
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> Add status to series if it's airing or ended (high)
-			</span>
-			<span title="In work">
-				<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" /> As with more sources for medias there's a need to sync all settings
-				i.e: automatic subtitles & auto next feature (releasing soon [experimental])
-			</span>
-			<span title="In work">
-				<Icon.Linear.Check class="inline-block size-6 fill-brand-primary-200" /> Add more sources for medias (very high)
-			</span>
-			<span title="Implemented">
-				<Icon.Linear.Check class="inline-block size-6 fill-brand-primary-200" /> Add automatic subtitles option in series (experimental)
-			</span>
-			<span title="Implemented">
-				<Icon.Linear.Check class="inline-block size-6 fill-brand-primary-200" /> Add last watched (season & episode) of show
-			</span>
-			<span title="Implemented">
-				<Icon.Linear.Check class="inline-block size-6 fill-brand-primary-200" /> Add automatic next option in series
-			</span>
+		<p class="flex flex-col items-start gap-y-4">
+			{#each roadmap as roadmapItem (roadmapItem.feature)}
+				{#if roadmapItem.status === 'in work'}
+					<span
+						title="In work"
+						class="space-x-1 rounded-md bg-brand-primary-150/15 px-3 py-2 text-sm text-primary shadow-lg ring-1 ring-white/10"
+					>
+						<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" />
+						<span class="inline-block align-middle"> {roadmapItem.feature} </span>
+					</span>
+				{:else if roadmapItem.status === 'implemented'}
+					<span
+						title="Implemented"
+						class="space-x-1 rounded-md bg-brand-primary-150/15 px-3 py-2 text-sm text-primary shadow-lg ring-1 ring-white/10"
+					>
+						<Icon.Linear.Check class="inline-block size-6 fill-brand-primary-200" />
+						<span class="inline-block align-middle"> {roadmapItem.feature} </span>
+					</span>
+				{/if}
+			{/each}
 		</p>
 	</article>
 
 	<h1 class="pt-8 font-Chewy text-5xl font-bold tracking-wider">Notes</h1>
-	<article class="mt-4 text-start">
-		There are currently known issues with Auto Next, Auto Play and Auto Subtitles feature. <br /> Since I'm not the owner of the streaming
-		services there are limits to what can be done, but I'm working to make those feature be 100% working. <br />
-		Also about ADS there are going to be probably ads added later, BUT they're not gonna be any ADS as popus in term of when you're navigating
-		through the page so it won't disrupt your interactions. The ADS on the videas are from streaming services not myself. <br />
+	<article class="my-4 rounded-md bg-brand-primary-150/15 px-3 py-2 text-start text-primary shadow-lg ring-1 ring-white/10">
+		<p>
+			There are currently known issues affecting the Auto Next, Auto Play, and Auto Subtitles features. Because I do not own the streaming
+			sources themselves, some limitations are out of my control. However, I'm actively working to make all these features function as
+			reliably as possible.
+		</p>
 
-		I personally recommend using adblocks like: <strong>ADGUARD</strong> or <strong>UBlock</strong>
+		<br />
+
+		<p>
+			Regarding advertisements: some ads may appear in the video player, but these are provided by the streaming services—never by BossFlix.
+			If ads are ever added to the site itself in the future, they will <strong>not</strong> include pop-ups or anything that disrupts your browsing
+			experience.
+		</p>
+
+		<br />
+
+		<p>
+			For the best viewing experience, I recommend using an ad blocker such as
+			<strong>AdGuard</strong> or <strong>uBlock Origin</strong>.
+		</p>
 	</article>
 </div>
