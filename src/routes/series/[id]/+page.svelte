@@ -17,25 +17,19 @@
 	const CHUNK = 30;
 	const title = data?.seriesMeta?.originalTitleText?.text ?? 'Untitled';
 	const year = data.seriesMeta?.releaseDate?.year;
-	const searchParams = Object.fromEntries(page.url.searchParams.entries()) as {
-		season?: string;
-		episode?: string;
-	};
+
+	let seasonSeed = $derived(Number(page.url.searchParams.get('season')) || 1);
+	let episodeSeed = $derived(Number(page.url.searchParams.get('episode')) || 1);
 
 	type EdgeList = Imdb.Series['episodes']['seasonEpisodes']['edges'];
 	const nodes = new SvelteMap<number, EdgeList>();
-
-	let entry = $state({
-		season: Math.max(Number(page.url.searchParams.get('season')) || 1),
-		episode: Math.max(Number(page.url.searchParams.get('episode')) || 1),
-	});
 
 	let defaultSource = $state<sourceOrigins>('vidsrc');
 
 	let playerOptions = $state({
 		autoPlay: true,
 		autoNext: true,
-		autoSubtitles: false,
+		autoSubtitles: true,
 	});
 
 	let isSeasonMenuActive = $state(false);
@@ -48,25 +42,25 @@
 			autoNext: playerOptions.autoNext,
 			autoPlay: playerOptions.autoPlay,
 			autoSubtitles: playerOptions.autoSubtitles,
-			season: entry.season,
-			episode: entry.episode,
+			season: seasonSeed,
+			episode: episodeSeed,
 		});
 	});
 
-	let episodeChunk = $derived(Math.max(0, Math.floor((entry.episode - 1) / CHUNK)));
+	let episodeChunk = $derived(Math.max(0, Math.floor((episodeSeed - 1) / CHUNK)));
 
 	let iframeRef = $state<HTMLIFrameElement>();
 
-	const seasonEdges = $derived(nodes.get(entry.season) ?? []);
+	const seasonEdges = $derived(nodes.get(seasonSeed) ?? []);
 	const totalEpisodes = $derived(seasonEdges.length);
 	const chunkCount = $derived(Math.ceil(totalEpisodes / CHUNK));
 	const currentEpisodeNode = $derived.by(() => {
-		return seasonEdges.find((e) => {
-			const epNumber = e.node.series.episodeNumber.episodeNumber;
-			return epNumber === entry.episode;
+		return seasonEdges.find((edge) => {
+			const epNumber = edge.node.series.episodeNumber.episodeNumber;
+			return epNumber === episodeSeed;
 		})?.node;
 	});
-	const episodePlot = $derived(currentEpisodeNode?.plots?.edges?.[0]?.node?.plotText?.plainText);
+	const episodePlot = $derived(currentEpisodeNode?.plots?.edges?.[0]?.node?.plotText?.plainText ?? 'No plot available, yet.');
 	const seasons = $derived(data?.seriesMeta?.episodes?.seasons ?? []);
 
 	const episodesForUI = $derived.by<EdgeList>(() => {
@@ -95,54 +89,89 @@
 	}
 
 	function updateEpisode(episode: number) {
-		if (entry.episode === episode) return;
+		if (episodeSeed === episode) return;
 
-		if (Number.isInteger(entry.episode / CHUNK)) {
+		if (Number.isInteger(episodeSeed / CHUNK)) {
 			episodeChunk += 1;
 		}
 
-		watchedStore.markEpisode(params.id, entry.season, [entry.episode, episode]);
+		watchedStore.markEpisode(params.id, seasonSeed, [episodeSeed, episode]);
 
-		entry.episode = episode;
+		episodeSeed = episode;
 
-		updateURL(entry.season, entry.episode);
+		updateURL(seasonSeed, episodeSeed);
 	}
 
 	async function updateSeason(season: number) {
-		if (entry.season === season) {
+		if (seasonSeed === season) {
 			isSeasonMenuActive = false;
 			return;
 		}
 
-		entry.season = season;
-		entry.episode = 1;
+		seasonSeed = season;
+		episodeSeed = 1;
 		isSeasonMenuActive = false;
 
-		watchedStore.init(params.id, entry.season);
-		watchedStore.markEpisode(params.id, entry.season, entry.episode);
+		watchedStore.init(params.id, seasonSeed);
+		watchedStore.markEpisode(params.id, seasonSeed, episodeSeed);
 
-		await updateURL(entry.season, entry.episode);
+		await updateURL(seasonSeed, episodeSeed);
 
 		if (!nodes.has(season)) {
 			invalidate('app:episodes');
 		}
 	}
 
+	// let messages = $state<any[]>([]);
+
+	function handleMessage(
+		event: MessageEvent<any> & {
+			currentTarget: EventTarget & Window;
+		},
+	) {
+		const incomingMessage = <PlayerMessageEmitter.PlayerJS.PlayerEventData>event.data;
+
+		const isEventSubtitle =
+			!isPlayerEvent(incomingMessage) && (incomingMessage.event === 'subtitle' || incomingMessage.event === 'subtitles');
+
+		const arePlayerSubtitlesOn = typeof incomingMessage.data === 'string' && incomingMessage.data !== 'off';
+
+		if (isEventSubtitle && arePlayerSubtitlesOn && !playerOptions.autoSubtitles && defaultSource === 'vidsrc') {
+			playerJsMessageEmitter(iframeRef?.contentWindow, 'subtitle', -1);
+			// messages.push(incomingMessage);
+		}
+
+		if (isPlayerEvent(incomingMessage) && incomingMessage.data.episode !== episodeSeed && playerOptions.autoNext) {
+			updateEpisode(incomingMessage.data?.episode ?? episodeSeed);
+
+			if (incomingMessage.data?.season === seasonSeed) return;
+
+			const season = incomingMessage.data?.season ?? seasonSeed;
+
+			updateSeason(season);
+		}
+	}
+
+	function handleSeasonMark() {
+		const episodesRange = Array.from(Array(seasonEdges.length), (_, index) => index + 1);
+
+		watchedStore.markEpisode(params.id, seasonSeed, episodesRange);
+	}
+
 	$effect(() => {
 		if (data.seriesEpisodes.seasonEpisodes) {
-			const season = untrack(() => entry.season);
+			const season = untrack(() => seasonSeed);
 
 			nodes.set(season, data.seriesEpisodes.seasonEpisodes.edges);
-			console.log(nodes);
 		}
 	});
 
 	onMount(async () => {
-		if (!searchParams.season || !searchParams.episode) {
-			updateURL(entry.season, entry.episode);
+		if (!seasonSeed || !episodeSeed) {
+			updateURL(seasonSeed, episodeSeed);
 		}
 
-		watchedStore.init(params.id, entry.season).markEpisode(params.id, entry.season, entry.episode);
+		watchedStore.init(params.id, seasonSeed).markEpisode(params.id, seasonSeed, episodeSeed);
 
 		if (watchedStore.totalEpisodes(params.id) === 0 || watchedStore.areEntriesEmpty(params.id)) {
 			watchedStore.setEntries(params.id, {
@@ -157,31 +186,6 @@
 			});
 		}
 	});
-
-	function handleMessage(
-		event: MessageEvent<any> & {
-			currentTarget: EventTarget & Window;
-		},
-	) {
-		const incomingMessage = <PlayerMessageEmitter.PlayerJS.PlayerEventData>event.data;
-
-		const isEventSubtitle =
-			!isPlayerEvent(incomingMessage) && (incomingMessage.event === 'subtitle' || incomingMessage.event === 'subtitles');
-
-		if (isEventSubtitle && incomingMessage.data !== 'off' && !playerOptions.autoSubtitles && defaultSource === 'vidsrc') {
-			playerJsMessageEmitter(iframeRef?.contentWindow, 'subtitle', -1);
-		}
-
-		if (isPlayerEvent(incomingMessage) && incomingMessage.data.episode !== entry.episode && playerOptions.autoNext) {
-			updateEpisode(incomingMessage.data?.episode ?? entry.episode);
-
-			if (incomingMessage.data?.season === entry.season) return;
-
-			const season = incomingMessage.data?.season ?? entry.season;
-
-			updateSeason(season);
-		}
-	}
 </script>
 
 <svelte:window onmessage={handleMessage} />
@@ -196,7 +200,7 @@
 			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
 		</a>
 	</header>
-	<div class="relative w-full overflow-hidden rounded-lg bg-surface">
+	<div class="relative mx-auto w-full overflow-hidden rounded-lg bg-surface">
 		<iframe
 			bind:this={iframeRef}
 			title={`${title}${year ? ` (${year})` : ''} — player`}
@@ -207,6 +211,7 @@
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
 			allowfullscreen
 		></iframe>
+
 		<div
 			class="pointer-events-none"
 			{@attach outsideClick(() => {
@@ -247,10 +252,11 @@
 			{/if}
 		</div>
 	</div>
-
-	<div class="grid grid-cols-[auto_1fr_auto] gap-x-4 sm:grid-cols-[auto_1fr_15rem]">
-		<div class="col-span-full mb-4 grid grid-cols-subgrid items-center gap-3">
-			<div class="col-span-1 row-start-2 space-x-1">
+	<!-- {JSON.stringify(messages, null, 2)} -->
+	<!-- TODO: Complete css overhaul this is painful to look at -->
+	<div class="media-container mt-4 gap-4">
+		<div class="Menu-Bar grid gap-3 sm:grid-cols-[auto_1fr_10rem] lg:grid-cols-[20rem_1fr_17.625rem]">
+			<div class="">
 				<OptionsDropdown
 					bind:isMenuOpen={isPlayerSettingsMenuActive}
 					bind:items={playerOptions}
@@ -262,24 +268,30 @@
 					<span>Player settings</span>
 				</OptionsDropdown>
 			</div>
+			<button
+				type="button"
+				class="flex w-full cursor-pointer items-center justify-center gap-x-2
+			       rounded-md bg-brand-primary-150/15 px-3 py-2 text-sm text-primary
+			       shadow-lg ring-1 ring-white/10 backdrop-blur-md hover:bg-brand-primary-150/25 hover:text-neutral-200 hover:[&>svg]:fill-neutral-200"
+				onclick={handleSeasonMark}
+			>
+				<Icon.Linear.Eye class="inline-block size-6 shrink-0 fill-[#c9d3ee]" />
+				Mark Season as Seen
+			</button>
 
-			<div class="col-start-3 row-start-2 flex h-full w-full justify-center gap-x-2">
-				<DropdownMenu
-					items={seasons}
-					keyProp="number"
-					bind:isMenuOpen={isSeasonMenuActive}
-					label="Season"
-					fallback="No seasons available."
-					onSelect={(season) => updateSeason(season.number)}
-				>
-					Season {entry.season}
-				</DropdownMenu>
-			</div>
+			<DropdownMenu
+				items={seasons}
+				keyProp="number"
+				bind:isMenuOpen={isSeasonMenuActive}
+				label="Season"
+				fallback="No seasons available."
+				onSelect={(season) => updateSeason(season.number)}
+			>
+				Season {seasonSeed}
+			</DropdownMenu>
 		</div>
 
-		<div
-			class="grid grid-cols-subgrid gap-y-4 max-sm:col-span-3 max-sm:row-start-3 max-sm:mt-4 max-xs:grid-rows-[auto_auto] max-xs:gap-y-4 2md:col-span-2"
-		>
+		<div class="Media-Poster">
 			<MediaCard
 				posterUrl={data.seriesMeta?.primaryImage?.url ?? ''}
 				{title}
@@ -289,19 +301,16 @@
 					.join(' • ')}
 				rating={data.seriesMeta?.ratingsSummary?.aggregateRating ?? `N/A`}
 			/>
-			<div class="mt-2">
-				<h1 class="text-4xl font-bold">{title}</h1>
-				<p class="ml-1 text-sm text-primary">
-					{#if episodePlot?.length}
-						{episodePlot}
-					{:else}
-						<Loader class="mt-2 ml-12" />
-					{/if}
-				</p>
-			</div>
 		</div>
 
-		<div class="col-start-1 max-sm:col-span-3 sm:col-start-3">
+		<article class="Plot mt-2 max-sm:text-center">
+			<h1 class="text-4xl font-bold">{title}</h1>
+			<p class="ml-1 text-sm text-primary">
+				{episodePlot}
+			</p>
+		</article>
+
+		<div class="Episodes">
 			<div class="relative mx-1">
 				<h3 class="text-primary">List of episodes:</h3>
 				<EpisodesMenu
@@ -316,17 +325,17 @@
 				/>
 			</div>
 
-			<div class="mt-1 ml-0.5 flex flex-wrap gap-2">
+			<div class="mt-1 ml-0.5 grid grid-cols-[repeat(6,2.5rem)] gap-2">
 				{#each episodesForUI as episodeNode (episodeNode.node.id)}
 					{@const episode = episodeNode.node}
 					{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
-					{@const isEntryCurrentEpisode = episodeNumber === entry.episode}
+					{@const isEntryCurrentEpisode = episodeNumber === episodeSeed}
 
 					<button
 						type="button"
 						onclick={() => updateEpisode(episodeNumber)}
 						class={`size-10 cursor-pointer rounded border-neutral-600 text-primary/40 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850
-						${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : watchedStore.isEpisodeMarked(params.id, entry.season, episodeNumber) ? 'bg-brand-yellow-80/50 text-[#141312]!' : 'bg-[#171926] hover:ring-neutral-500'}
+						${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : watchedStore.isEpisodeMarked(params.id, seasonSeed, episodeNumber) ? 'bg-brand-yellow-80/50 text-[#141312]!' : 'bg-[#171926] hover:ring-neutral-500'}
 						text-center align-middle leading-10 font-semibold`}
 					>
 						{episodeNumber}
@@ -338,3 +347,51 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.media-container {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		grid-template-areas:
+			'Menu-Bar Menu-Bar Menu-Bar'
+			'Media-Poster Plot Episodes';
+	}
+
+	.Plot {
+		grid-area: Plot;
+	}
+	.Episodes {
+		grid-area: Episodes;
+	}
+	.Media-Poster {
+		grid-area: Media-Poster;
+	}
+	.Menu-Bar {
+		grid-area: Menu-Bar;
+	}
+
+	@media (width <= 1024px) {
+		.media-container {
+			grid-template-areas:
+				'Menu-Bar Menu-Bar Menu-Bar'
+				'Plot Plot Plot'
+				'Media-Poster Episodes Episodes';
+		}
+	}
+
+	@media (width <= 640px) {
+		.media-container {
+			justify-items: center;
+			grid-template-areas:
+				'Menu-Bar Menu-Bar Menu-Bar'
+				'Episodes Episodes Episodes'
+				'Media-Poster Media-Poster Media-Poster'
+				'Plot Plot Plot';
+		}
+
+		.Menu-Bar {
+			justify-self: stretch;
+			margin-inline: 1rem;
+		}
+	}
+</style>

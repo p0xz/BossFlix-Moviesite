@@ -12,7 +12,7 @@
 		if (bfWatched) watchedStore.fromJSON(JSON.parse(bfWatched));
 	});
 
-	const links = [
+	const routes = [
 		{
 			href: '/movie',
 			label: 'Movies',
@@ -65,7 +65,7 @@
 
 {#snippet Link(href: string, label: string, icon: Component<Record<string, any>, {}, ''>)}
 	{@const Component = icon}
-	<a {href} aria-label={label} class="flex items-center justify-center gap-2 hover:text-neutral-200 hover:[&>svg]:fill-white">
+	<a {href} aria-label={label} class="flex items-center justify-center gap-2 hover:text-neutral-200 hover:[&>svg]:fill-neutral-200">
 		<Component class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
 		<span class="hidden sm:inline"> {label} </span>
 	</a>
@@ -81,7 +81,7 @@
 			<a href="/" class="font-Chewy text-4xl text-white">BF</a>
 		</li>
 
-		{#each links as link (link.href)}
+		{#each routes as link (link.href)}
 			<li class="first:pl-8 last:ml-auto">
 				{@render Link(link.href, link.label, link.icon)}
 			</li>

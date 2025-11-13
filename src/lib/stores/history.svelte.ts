@@ -14,6 +14,7 @@ interface WatchedStoreEntries {
 
 type WatchedStoreValue = [WatchedStoreEntries, SvelteMap<number, SvelteSet<number>> | null];
 type WatchedStoreType = SvelteMap<string, WatchedStoreValue>;
+
 class WatchedStore {
 	#store: WatchedStoreType;
 
@@ -51,12 +52,14 @@ class WatchedStore {
 		const mediaStore = (this.#store.get(imdbId) as WatchedStoreValue)[0];
 
 		return (
+			!mediaStore.genres.length &&
 			!mediaStore.posterUrl &&
+			!mediaStore.rating &&
+			!mediaStore.releaseYear &&
 			!mediaStore.title &&
 			!mediaStore.titleType &&
-			!mediaStore.releaseYear &&
-			!mediaStore.rating &&
-			mediaStore.genres.length === 0
+			!mediaStore.totalEpisodes &&
+			!mediaStore.totalSeasons
 		);
 	}
 
@@ -99,10 +102,7 @@ class WatchedStore {
 		if (!mediaStore || !mediaStore[1] || mediaStore[1].size === 0) return [1, 1];
 
 		const latestWatchedSeason = Math.max(...mediaStore[1].keys(), 1);
-		const latestWatchedEpisode = Math.max(
-			...(mediaStore[1].get(latestWatchedSeason) as SvelteSet<number>).values(),
-			1,
-		);
+		const latestWatchedEpisode = Math.max(...(mediaStore[1].get(latestWatchedSeason) as SvelteSet<number>).values(), 1);
 
 		return [latestWatchedSeason, latestWatchedEpisode];
 	}
@@ -113,10 +113,7 @@ class WatchedStore {
 
 	toJSON() {
 		return Array.from(this.#store, ([imdbId, [entries, seasonsMap]]) => {
-			const seasons =
-				seasonsMap instanceof SvelteMap
-					? Array.from(seasonsMap, ([season, epSet]) => [season, Array.from(epSet)])
-					: null;
+			const seasons = seasonsMap instanceof SvelteMap ? Array.from(seasonsMap, ([season, epSet]) => [season, Array.from(epSet)]) : null;
 
 			return [imdbId, { entries, seasons }];
 		});

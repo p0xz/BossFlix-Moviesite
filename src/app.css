@@ -47,10 +47,7 @@
 	--ease-fluid: cubic-bezier(0.3, 0, 0, 1);
 
 	/* breakpoints */
-	--breakpoint-xs: 32.5rem; /* 520px */
-	--breakpoint-2md: 56rem; /* 896px */
 	--breakpoint-2lg: 88rem; /* 1408px */
-	--breakpoint-4xl: 160rem; /* 2560px */
 }
 
 @layer base {
@@ -63,13 +60,13 @@
 	}
 }
 
-@media (min-width: 120.063rem) {
+@media (width > 1920px) {
 	html {
 		font-size: 20px;
 	}
 }
 
-@media (min-width: 160rem) {
+@media (width > 2560px) {
 	html {
 		font-size: 22px;
 	}

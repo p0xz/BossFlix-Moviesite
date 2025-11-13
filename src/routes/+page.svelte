@@ -8,9 +8,9 @@
 
 	let { data } = $props();
 
-	let previousInputValue = '';
+	let previousInputValue: string = '';
 
-	const submitDebounced = debounce((form) => form.requestSubmit(), 300);
+	const submitDebounced = debounce((form: HTMLFormElement) => form.requestSubmit(), 300);
 
 	function handleInput(event: Event) {
 		const currentTarget = event.currentTarget as HTMLInputElement;
@@ -22,8 +22,9 @@
 			previousInputValue = query;
 			return;
 		}
+
 		previousInputValue = query;
-		submitDebounced(currentTarget.form);
+		submitDebounced(<HTMLFormElement>currentTarget.form);
 	}
 </script>
 

@@ -116,15 +116,28 @@
 				.join(' • ')}
 			rating={data.movie?.ratingsSummary?.aggregateRating ?? `N/A`}
 		/>
-		<div>
-			<h1 class="text-4xl font-bold">{title}</h1>
-			<p class="ml-1 text-sm text-primary">
-				{#if plotText?.length}
-					{plotText}
-				{:else}
-					<Loader class="mt-2 ml-12" />
-				{/if}
-			</p>
-		</div>
+
+		<article class="space-y-2 text-sm text-primary">
+			<header>
+				<h1 class="text-4xl font-bold">{title}</h1>
+				<ul class="ml-1 flex gap-x-2">
+					<li class="font-medium">Directed by:</li>
+					{#each directors as director (director.node.name.nameText.text)}
+						{@const directorName = director.node.name.nameText.text}
+
+						<li class="text-white">{directorName}</li>
+					{/each}
+				</ul>
+			</header>
+			<section class="ml-1">
+				<p>
+					{#if plotText?.length}
+						{plotText}
+					{:else}
+						<Loader class="mt-2 ml-12" />
+					{/if}
+				</p>
+			</section>
+		</article>
 	</div>
 </div>

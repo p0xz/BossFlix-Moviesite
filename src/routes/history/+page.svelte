@@ -38,6 +38,8 @@
 				rating={watchedEntries.rating}
 			/>
 		</a>
+	{:else}
+		<h2 class="text-center col-span-full text-2xl font-Chewy">Hey, your history’s empty — you should fix that right now</h2>
 	{/each}
 
 	<!-- <button
