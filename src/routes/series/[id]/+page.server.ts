@@ -3,7 +3,7 @@ import { IMDB_API_URL, gq } from '$lib';
 import { type Imdb } from '$lib/types';
 
 export const load = (async ({ params, url, fetch, parent, depends, untrack }) => {
-	await parent();
+	const parentDataPromise = parent();
 
 	const season = untrack(() => url.searchParams.get('season') ?? '1');
 
@@ -15,20 +15,22 @@ export const load = (async ({ params, url, fetch, parent, depends, untrack }) =>
 		full: false,
 	};
 
-	const response = await fetch(IMDB_API_URL, {
+	const episodeDataPromise = fetch(IMDB_API_URL, {
 		headers: {
 			'accept-language': 'en-US,en;q=0.9,sk;q=0.8',
 			'content-type': 'application/json',
 			'x-imdb-user-language': 'en-US',
-			'Cache-Control': 'no-cache',
 		},
 		body: JSON.stringify({ query: gq.seasonEpisodes, variables }),
 		method: 'POST',
 	}).then((res) => res.json() as Promise<{ data: { title: Omit<Pick<Imdb.Series, 'episodes'>, 'seasons'> } }>);
 
+	// Wait for the parent i.e layout load and also the 'child' to wait in parallel
+	const [, episodeResponse] = await Promise.all([parentDataPromise, episodeDataPromise]);
+
 	depends('app:episodes');
 
 	return {
-		seriesEpisodes: response.data.title?.episodes,
+		seriesEpisodes: episodeResponse.data.title?.episodes,
 	};
 }) satisfies PageServerLoad;

@@ -2,63 +2,68 @@
 	import { Icon } from '$lib/icons';
 	import type { PageProps } from './$types';
 
+	const ROADMAP_STATUS = {
+		IN_WORK: 'in work',
+		IMPLEMENTED: 'implemented',
+	} as const;
+
 	const roadmap = [
 		{
 			feature: 'Introduce a unified custom player that consolidates all media sources',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Implement Watch2Gether real-time co-watching functionality',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Launch dedicated Movies and Series detail pages',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Enable transfer of watched history and favourites across devices',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Add personalized recommendation features',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Introduce advanced filtering options for homepage search',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Add settings for selecting a default subtitle language',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature:
 				'Integrate OpenSubtitles library to allow users to attach alternative subtitles if existing ones are inaccurate or unavailable',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Display series status (Airing / Ended) on the series page',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Synchronize autoplay, automatic subtitles, and other playback settings across all sources',
-			status: 'in work',
+			status: ROADMAP_STATUS.IN_WORK,
 		},
 		{
 			feature: 'Expand the number of available media sources',
-			status: 'implemented',
+			status: ROADMAP_STATUS.IMPLEMENTED,
 		},
 		{
 			feature: 'Add automatic subtitle selection for series',
-			status: 'implemented',
+			status: ROADMAP_STATUS.IMPLEMENTED,
 		},
 		{
 			feature: 'Store and restore last watched season and episode for each series',
-			status: 'implemented',
+			status: ROADMAP_STATUS.IMPLEMENTED,
 		},
 		{
 			feature: 'Add automatic “Next Episode” playback for series',
-			status: 'implemented',
+			status: ROADMAP_STATUS.IMPLEMENTED,
 		},
 	];
 </script>
@@ -73,7 +78,7 @@
 	<article>
 		<p class="flex flex-col items-start gap-y-4">
 			{#each roadmap as roadmapItem (roadmapItem.feature)}
-				{#if roadmapItem.status === 'in work'}
+				{#if roadmapItem.status === ROADMAP_STATUS.IN_WORK}
 					<span
 						title="In work"
 						class="space-x-1 rounded-md bg-brand-primary-150/15 px-3 py-2 text-sm text-primary shadow-lg ring-1 ring-white/10"
@@ -81,7 +86,7 @@
 						<Icon.Linear.Slash class="inline-block size-6 fill-brand-red-200" />
 						<span class="inline-block align-middle"> {roadmapItem.feature} </span>
 					</span>
-				{:else if roadmapItem.status === 'implemented'}
+				{:else if roadmapItem.status === ROADMAP_STATUS.IMPLEMENTED}
 					<span
 						title="Implemented"
 						class="space-x-1 rounded-md bg-brand-primary-150/15 px-3 py-2 text-sm text-primary shadow-lg ring-1 ring-white/10"

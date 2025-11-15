@@ -16,7 +16,7 @@ export const isPlayerEvent = (v: unknown): v is PlayerMessageEmitter.PlayerJS.Pl
 export function playerJsMessageEmitter<T extends PlayerMessageEmitter.PlayerJS.PlayerEventCommand>(
 	contentWindow: Window | null | undefined,
 	cmd: T,
-	arg: PlayerMessageEmitter.PlayerJS.ArgumentForCommand<T>,
+	arg?: PlayerMessageEmitter.PlayerJS.ArgumentForCommand<T>,
 	origin: string = '*',
 ) {
 	contentWindow?.postMessage({ api: cmd, set: arg }, origin);

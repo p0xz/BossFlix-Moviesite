@@ -7,7 +7,7 @@
 	import { page } from '$app/state';
 	import { onMount, untrack } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { goto, invalidate } from '$app/navigation';
+	import { goto, invalidate, preloadData } from '$app/navigation';
 	import { capitalize, fixDigits, outsideClick, SourceBuilder, watchedStore } from '$lib';
 	import { EpisodesMenu, Loader, MediaCard, DropdownMenu, OptionsDropdown } from '$lib/components/ui';
 	import { Icon } from '$lib/icons';
@@ -21,10 +21,9 @@
 	let seasonSeed = $derived(Number(page.url.searchParams.get('season')) || 1);
 	let episodeSeed = $derived(Number(page.url.searchParams.get('episode')) || 1);
 
-	type EdgeList = Imdb.Series['episodes']['seasonEpisodes']['edges'];
-	const nodes = new SvelteMap<number, EdgeList>();
-
+	const nodes = new SvelteMap<number, Imdb.Series['episodes']['seasonEpisodes']['edges']>();
 	let defaultSource = $state<sourceOrigins>('vidsrc');
+	let iframeRef = $state<HTMLIFrameElement>();
 
 	let playerOptions = $state({
 		autoPlay: true,
@@ -37,33 +36,26 @@
 	let isServersMenuActive = $state(false);
 	let isPlayerSettingsMenuActive = $state(false);
 
-	let iframeSrc = $derived.by(() => {
-		return SourceBuilder.build(defaultSource, params.id, {
-			autoNext: playerOptions.autoNext,
-			autoPlay: playerOptions.autoPlay,
-			autoSubtitles: playerOptions.autoSubtitles,
-			season: seasonSeed,
-			episode: episodeSeed,
-		});
-	});
+	let isPlayerNavigating = $state(false);
+
+	let iframeSrc = $state('');
 
 	let episodeChunk = $derived(Math.max(0, Math.floor((episodeSeed - 1) / CHUNK)));
-
-	let iframeRef = $state<HTMLIFrameElement>();
-
 	const seasonEdges = $derived(nodes.get(seasonSeed) ?? []);
 	const totalEpisodes = $derived(seasonEdges.length);
 	const chunkCount = $derived(Math.ceil(totalEpisodes / CHUNK));
+
 	const currentEpisodeNode = $derived.by(() => {
 		return seasonEdges.find((edge) => {
 			const epNumber = edge.node.series.episodeNumber.episodeNumber;
 			return epNumber === episodeSeed;
 		})?.node;
 	});
+
 	const episodePlot = $derived(currentEpisodeNode?.plots?.edges?.[0]?.node?.plotText?.plainText ?? 'No plot available, yet.');
 	const seasons = $derived(data?.seriesMeta?.episodes?.seasons ?? []);
 
-	const episodesForUI = $derived.by<EdgeList>(() => {
+	const episodesForUI = $derived.by<Imdb.Series['episodes']['seasonEpisodes']['edges']>(() => {
 		const start = episodeChunk * CHUNK;
 		const end = start + CHUNK;
 		return seasonEdges.slice(start, end);
@@ -90,16 +82,7 @@
 
 	function updateEpisode(episode: number) {
 		if (episodeSeed === episode) return;
-
-		if (Number.isInteger(episodeSeed / CHUNK)) {
-			episodeChunk += 1;
-		}
-
-		watchedStore.markEpisode(params.id, seasonSeed, [episodeSeed, episode]);
-
-		episodeSeed = episode;
-
-		updateURL(seasonSeed, episodeSeed);
+		updateURL(seasonSeed, episode);
 	}
 
 	async function updateSeason(season: number) {
@@ -108,23 +91,15 @@
 			return;
 		}
 
-		seasonSeed = season;
-		episodeSeed = 1;
 		isSeasonMenuActive = false;
-
-		watchedStore.init(params.id, seasonSeed);
-		watchedStore.markEpisode(params.id, seasonSeed, episodeSeed);
-
-		await updateURL(seasonSeed, episodeSeed);
+		await updateURL(season, 1);
 
 		if (!nodes.has(season)) {
 			invalidate('app:episodes');
 		}
 	}
 
-	// let messages = $state<any[]>([]);
-
-	function handleMessage(
+	async function handleMessage(
 		event: MessageEvent<any> & {
 			currentTarget: EventTarget & Window;
 		},
@@ -133,45 +108,78 @@
 
 		const isEventSubtitle =
 			!isPlayerEvent(incomingMessage) && (incomingMessage.event === 'subtitle' || incomingMessage.event === 'subtitles');
-
 		const arePlayerSubtitlesOn = typeof incomingMessage.data === 'string' && incomingMessage.data !== 'off';
 
 		if (isEventSubtitle && arePlayerSubtitlesOn && !playerOptions.autoSubtitles && defaultSource === 'vidsrc') {
 			playerJsMessageEmitter(iframeRef?.contentWindow, 'subtitle', -1);
-			// messages.push(incomingMessage);
 		}
 
-		if (isPlayerEvent(incomingMessage) && incomingMessage.data.episode !== episodeSeed && playerOptions.autoNext) {
-			updateEpisode(incomingMessage.data?.episode ?? episodeSeed);
+		if (isPlayerEvent(incomingMessage) && playerOptions.autoNext) {
+			const newEpisode = incomingMessage.data?.episode;
+			const newSeason = incomingMessage.data?.season;
 
-			if (incomingMessage.data?.season === seasonSeed) return;
+			const hasEpisodeChanged = newEpisode && newEpisode !== episodeSeed;
+			const hasSeasonChanged = newSeason && newSeason !== seasonSeed;
 
-			const season = incomingMessage.data?.season ?? seasonSeed;
+			if ((hasEpisodeChanged || hasSeasonChanged) && !isPlayerNavigating) {
+				isPlayerNavigating = true;
 
-			updateSeason(season);
+				const seasonToNavigate = newSeason ?? seasonSeed;
+				const episodeToNavigate = newEpisode ?? 1;
+
+				await updateURL(seasonToNavigate, episodeToNavigate);
+
+				if (!nodes.has(seasonToNavigate)) {
+					await invalidate('app:episodes');
+				}
+
+				isPlayerNavigating = false;
+			}
 		}
 	}
 
 	function handleSeasonMark() {
 		const episodesRange = Array.from(Array(seasonEdges.length), (_, index) => index + 1);
-
 		watchedStore.markEpisode(params.id, seasonSeed, episodesRange);
 	}
 
 	$effect(() => {
+		const builderOptions = {
+			autoNext: playerOptions.autoNext,
+			autoPlay: playerOptions.autoPlay,
+			autoSubtitles: playerOptions.autoSubtitles,
+			season: seasonSeed,
+			episode: episodeSeed,
+		};
+
+		const currentId = params.id;
+
+		if (untrack(() => isPlayerNavigating)) {
+			return;
+		}
+
+		iframeSrc = SourceBuilder.build(defaultSource, currentId, builderOptions);
+	});
+
+	$effect(() => {
 		if (data.seriesEpisodes.seasonEpisodes) {
 			const season = untrack(() => seasonSeed);
-
 			nodes.set(season, data.seriesEpisodes.seasonEpisodes.edges);
 		}
 	});
 
-	onMount(async () => {
-		if (!seasonSeed || !episodeSeed) {
-			updateURL(seasonSeed, episodeSeed);
-		}
+	$effect(() => {
+		if (isNaN(seasonSeed) || isNaN(episodeSeed)) return;
 
-		watchedStore.init(params.id, seasonSeed).markEpisode(params.id, seasonSeed, episodeSeed);
+		watchedStore.init(params.id, false);
+		watchedStore.markEpisode(params.id, seasonSeed, episodeSeed);
+	});
+
+	onMount(async () => {
+		const urlParams = page.url.searchParams;
+		if (!urlParams.has('season') || !urlParams.has('episode')) {
+			await updateURL(seasonSeed, episodeSeed);
+		}
 
 		if (watchedStore.totalEpisodes(params.id) === 0 || watchedStore.areEntriesEmpty(params.id)) {
 			watchedStore.setEntries(params.id, {
@@ -180,9 +188,9 @@
 				releaseYear: year,
 				titleType: 'series',
 				rating: data.seriesMeta?.ratingsSummary?.aggregateRating || 0,
-				genres: data.seriesMeta.titleGenres.genres.map((g) => g.genre.text) || [],
-				totalEpisodes: data.seriesMeta.episodes.allEpisodesTotal.total || 0,
-				totalSeasons: data.seriesMeta.episodes.seasons?.length || 0,
+				genres: data.seriesMeta.titleGenres?.genres?.map((g) => g.genre.text) || [],
+				totalEpisodes: data.seriesMeta.episodes?.allEpisodesTotal?.total || 0,
+				totalSeasons: data.seriesMeta.episodes?.seasons?.length || 0,
 			});
 		}
 	});
@@ -208,9 +216,10 @@
 			class="aspect-video"
 			loading="lazy"
 			referrerpolicy="no-referrer"
-			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+			allow="autoplay; encrypted-media; picture-in-picture; fullscreen;"
 			allowfullscreen
 		></iframe>
+		<!-- {JSON.stringify(data.seriesEpisodes, null, 2)} -->
 
 		<div
 			class="pointer-events-none"

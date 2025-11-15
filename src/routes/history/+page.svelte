@@ -10,16 +10,18 @@
 
 <div class="container mx-auto grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] place-items-center gap-8 py-8">
 	{#each watchedStore.state.entries() as [id, v]}
-		{@const totalEpisodes = v[0].totalEpisodes}
-		{@const watchedEntries = v[0]}
-		{@const titleType = watchedEntries.titleType.toLowerCase()}
-		{@const isSeries = titleType.includes('series')}
-		{@const watchedCount = isSeries
-			? Array.from((v[1] as SvelteMap<number, SvelteSet<number>>).values()).reduce((acc, set) => acc + set.size, 0)
-			: 0}
-		{@const seasonsMap = v[1]}
-		{@const lastWatched = watchedStore.lastWatched(id)}
+		{@const watchedEntries = v.entries}
+		{@const seasonsMap = v.seasons}
+
+		{@const isSeries = seasonsMap !== null}
+
+		{@const totalEpisodes = watchedEntries.totalEpisodes}
 		{@const totalSeasons = watchedEntries.totalSeasons}
+
+		{@const watchedCount = isSeries ? Array.from(seasonsMap.values()).reduce((acc, set) => acc + set.size, 0) : 0}
+
+		{@const lastWatched = watchedStore.lastWatched(id)}
+
 		<a
 			href={`/${isSeries ? 'series' : 'movie'}/${id}${isSeries ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
 			class="transition-transform hover:scale-105"

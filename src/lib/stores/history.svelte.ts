@@ -12,7 +12,11 @@ interface WatchedStoreEntries {
 	runtime?: number;
 }
 
-type WatchedStoreValue = [WatchedStoreEntries, SvelteMap<number, SvelteSet<number>> | null];
+interface WatchedStoreValue {
+	entries: WatchedStoreEntries;
+	seasons: SvelteMap<number, SvelteSet<number>> | null;
+}
+
 type WatchedStoreType = SvelteMap<string, WatchedStoreValue>;
 
 class WatchedStore {
@@ -22,93 +26,98 @@ class WatchedStore {
 		this.#store = new SvelteMap();
 	}
 
-	markEpisode(imdbId: string, season: number, episode: number | number[]): void {
-		if (!this.#store.has(imdbId)) return;
+	#getSeasonMap(imdbId: string): SvelteMap<number, SvelteSet<number>> | null | undefined {
+		return this.#store.get(imdbId)?.seasons;
+	}
 
-		const mediaStore = (this.#store.get(imdbId) as WatchedStoreValue)[1];
-		if (Array.isArray(episode)) {
-			episode.forEach((ep) => mediaStore?.get(season)?.add(ep));
-			return;
+	markEpisode(imdbId: string, season: number, episode: number | number[]): void {
+		const seasonMap = this.#getSeasonMap(imdbId);
+
+		if (!seasonMap) return;
+
+		if (!seasonMap.has(season)) {
+			seasonMap.set(season, new SvelteSet<number>());
 		}
 
-		mediaStore?.get(season)?.add(episode);
+		const episodeSet = seasonMap.get(season)!;
+
+		if (Array.isArray(episode)) {
+			episode.forEach((ep) => episodeSet.add(ep));
+		} else {
+			episodeSet.add(episode);
+		}
 	}
 
 	isEpisodeMarked(imdbId: string, season: number, episode: number): boolean {
-		if (!this.#store.has(imdbId)) return false;
+		const seasonMap = this.#getSeasonMap(imdbId);
 
-		const mediaStore = (this.#store.get(imdbId) as WatchedStoreValue)[1];
-
-		return !!mediaStore?.get(season)?.has(episode);
+		return !!seasonMap?.get(season)?.has(episode);
 	}
 
-	setEntries(imdbId: string, entry: WatchedStoreEntries) {
-		if (!this.#store.has(imdbId)) return this;
-
-		const mediaStore = this.#store.get(imdbId) as WatchedStoreValue;
-		mediaStore[0] = entry;
+	setEntries(imdbId: string, entry: WatchedStoreEntries): this {
+		const storeEntry = this.#store.get(imdbId);
+		if (storeEntry) {
+			// SvelteMap is reactive, so mutating the nested object is fine
+			storeEntry.entries = entry;
+		}
 		return this;
 	}
-
 	areEntriesEmpty(imdbId: string): boolean {
-		if (!this.#store.has(imdbId)) return true;
+		const entries = this.#store.get(imdbId)?.entries;
 
-		const mediaStore = (this.#store.get(imdbId) as WatchedStoreValue)[0];
+		if (!entries) return true;
 
 		return (
-			!mediaStore.genres.length &&
-			!mediaStore.posterUrl &&
-			!mediaStore.rating &&
-			!mediaStore.releaseYear &&
-			!mediaStore.title &&
-			!mediaStore.titleType &&
-			!mediaStore.totalEpisodes &&
-			!mediaStore.totalSeasons
+			!entries.posterUrl &&
+			!entries.title &&
+			!entries.titleType &&
+			!entries.releaseYear &&
+			!entries.rating &&
+			!entries.genres.length &&
+			!entries.totalEpisodes &&
+			!entries.totalSeasons &&
+			!entries.runtime
 		);
 	}
 
-	totalEpisodes(imdbId: string) {
-		if (!this.#store.has(imdbId)) return 0;
-
-		const mediaStore = this.#store.get(imdbId) as WatchedStoreValue;
-
-		return mediaStore[0].totalEpisodes;
+	totalEpisodes(imdbId: string): number {
+		return this.#store.get(imdbId)?.entries.totalEpisodes ?? 0;
 	}
 
-	init(imdbId: string, season: number, isMovie: boolean = false) {
-		if (!this.#store.has(imdbId)) {
-			this.#store.set(imdbId, [
-				{
-					posterUrl: '',
-					title: '',
-					titleType: '',
-					releaseYear: 0,
-					rating: 0,
-					genres: [],
-					totalEpisodes: 0,
-					totalSeasons: 0,
-				},
-				isMovie ? null : new SvelteMap<number, SvelteSet<number>>(),
-			]);
-		}
+	init(imdbId: string, isMovie: boolean = false): this {
+		if (this.#store.has(imdbId)) return this;
 
-		if (isMovie) return this;
-
-		const mediaStore = (this.#store.get(imdbId) as WatchedStoreValue)[1];
-		if (mediaStore && !mediaStore.has(season)) mediaStore.set(season, new SvelteSet());
+		this.#store.set(imdbId, {
+			entries: {
+				posterUrl: '',
+				title: '',
+				titleType: '',
+				releaseYear: 0,
+				rating: 0,
+				genres: [],
+				totalEpisodes: 0,
+				totalSeasons: 0,
+				runtime: 0, // Added
+			},
+			seasons: isMovie ? null : new SvelteMap<number, SvelteSet<number>>(),
+		});
 
 		return this;
 	}
 
 	lastWatched(imdbId: string): [number, number] {
-		if (!this.#store.has(imdbId)) return [1, 1];
+		const seasonMap = this.#getSeasonMap(imdbId);
 
-		const mediaStore = this.#store.get(imdbId) as WatchedStoreValue;
+		if (!seasonMap || seasonMap.size === 0) return [1, 1];
 
-		if (!mediaStore || !mediaStore[1] || mediaStore[1].size === 0) return [1, 1];
+		const latestWatchedSeason = Math.max(...seasonMap.keys(), 1);
+		const episodeSet = seasonMap.get(latestWatchedSeason);
 
-		const latestWatchedSeason = Math.max(...mediaStore[1].keys(), 1);
-		const latestWatchedEpisode = Math.max(...(mediaStore[1].get(latestWatchedSeason) as SvelteSet<number>).values(), 1);
+		if (!episodeSet || episodeSet.size === 0) {
+			return [latestWatchedSeason, 1];
+		}
+
+		const latestWatchedEpisode = Math.max(...episodeSet.values(), 1);
 
 		return [latestWatchedSeason, latestWatchedEpisode];
 	}
@@ -118,14 +127,17 @@ class WatchedStore {
 	}
 
 	toJSON() {
-		return Array.from(this.#store, ([imdbId, [entries, seasonsMap]]) => {
-			const seasons = seasonsMap instanceof SvelteMap ? Array.from(seasonsMap, ([season, epSet]) => [season, Array.from(epSet)]) : null;
+		return Array.from(this.#store, ([imdbId, storeValue]) => {
+			const seasons =
+				storeValue.seasons instanceof SvelteMap ? Array.from(storeValue.seasons, ([season, epSet]) => [season, Array.from(epSet)]) : null;
 
-			return [imdbId, { entries, seasons }];
+			return [imdbId, { entries: storeValue.entries, seasons }];
 		});
 	}
 
 	fromJSON(data: any): void {
+		if (!Array.isArray(data)) return;
+
 		for (const [imdbId, payload] of data ?? []) {
 			const entries: WatchedStoreEntries = {
 				posterUrl: payload?.entries?.posterUrl ?? '',
@@ -133,7 +145,7 @@ class WatchedStore {
 				titleType: payload?.entries?.titleType ?? '',
 				releaseYear: Number(payload?.entries?.releaseYear ?? 0),
 				rating: Number(payload?.entries?.rating ?? 0),
-				genres: payload?.entries?.genres ?? [],
+				genres: Array.isArray(payload?.entries?.genres) ? payload.entries.genres : [],
 				totalEpisodes: Number(payload?.entries?.totalEpisodes ?? 0),
 				totalSeasons: Number(payload?.entries?.totalSeasons ?? 0),
 				runtime: Number(payload?.entries?.runtime ?? 0),
@@ -145,12 +157,16 @@ class WatchedStore {
 			if (seasonsMap) {
 				for (const [season, eps] of payload?.seasons ?? []) {
 					const s = Number(season);
-					const episodes = Array.isArray(eps) ? eps.map(Number) : [];
+
+					if (isNaN(s)) continue;
+
+					const episodes = Array.isArray(eps) ? eps.map(Number).filter((n) => !isNaN(n)) : [];
+
 					seasonsMap.set(s, new SvelteSet<number>(episodes));
 				}
 			}
 
-			this.#store.set(imdbId, [entries, seasonsMap]);
+			this.#store.set(imdbId, { entries, seasons: seasonsMap });
 		}
 	}
 

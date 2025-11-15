@@ -13,15 +13,7 @@
 		fallback?: string;
 	}
 
-	let {
-		items,
-		isMenuOpen = $bindable(),
-		keyProp,
-		label,
-		onSelect,
-		children,
-		fallback = 'Unavailable',
-	}: Props<T, K> = $props();
+	let { items, isMenuOpen = $bindable(), keyProp, label, onSelect, children, fallback = 'Unavailable' }: Props<T, K> = $props();
 </script>
 
 {#if items}

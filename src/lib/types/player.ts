@@ -103,7 +103,7 @@ export namespace PlayerMessageEmitter {
 
 		export type PlayerEventData =
 			| {
-					event: 'subtitle' | 'subtitles';
+					event: 'subtitle' | 'subtitles' | (string & {});
 					data: PlayerSubtitleDataLiterals | null; // e.g: 'English' | 'off' | ...
 			  }
 			| PlayerTypeEvent;

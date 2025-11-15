@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { gq } from '$lib';
+import { gq, IMDB_API_URL } from '$lib';
 import { type Imdb } from '$lib/types';
 
 export const load = (async ({ params, url, fetch, untrack }) => {
@@ -17,7 +17,7 @@ export const load = (async ({ params, url, fetch, untrack }) => {
 	type extractedSeasons = Omit<Imdb.Series['episodes'], 'episodes'>;
 	type seriesMeta = Omit<Imdb.Series, 'episodes'> & { episodes: extractedSeasons };
 
-	const response = await fetch('https://caching.graphql.imdb.com/', {
+	const response = await fetch(IMDB_API_URL, {
 		headers: {
 			'accept-language': 'en-US,en;q=0.9,sk;q=0.8',
 			'content-type': 'application/json',
