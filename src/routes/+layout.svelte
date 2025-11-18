@@ -2,38 +2,41 @@
 	import '../lib/css/fontfaces.css';
 	import '../app.css';
 	import { onMount, type Component } from 'svelte';
-	import { watchedStore } from '$lib';
+	import { historyStorage } from '$lib';
 	import { Icon } from '$lib/icons';
+	import { page } from '$app/state';
+	import { onNavigate } from '$app/navigation';
 
 	let { children } = $props();
 
 	onMount(() => {
 		const bfWatched = localStorage.getItem('bf-watched');
-		if (bfWatched) watchedStore.fromJSON(JSON.parse(bfWatched));
+		if (bfWatched) historyStorage.fromJSON(JSON.parse(bfWatched));
 	});
 
 	const routes = [
 		{
-			href: '/movie',
-			label: 'Movies',
-			icon: Icon.Linear.FilmTape,
+			href: '/',
+			label: 'Home',
 		},
 		{
-			href: '/series',
-			label: 'TV Series',
-			icon: Icon.Linear.TV,
+			href: '/discover',
+			label: 'Discover',
 		},
+
 		{
 			href: '/history',
 			label: 'History',
-			icon: Icon.Linear.Eye,
-		},
-		{
-			href: '/settings',
-			label: 'Settings',
-			icon: Icon.Linear.Gear,
 		},
 	] as const;
+
+	onNavigate(() => {
+		if (!document.startViewTransition) return;
+
+		return new Promise((resolve) => {
+			document.startViewTransition(() => resolve());
+		});
+	});
 </script>
 
 <svelte:head>
@@ -42,49 +45,86 @@
 
 	<!-- Open Graph / Facebook -->
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="http://bossflix.org/" />
+	<meta property="og:url" content="https://bossflix.org/" />
 	<meta property="og:title" content="BossFlix - watch your favourite shows and movies free online" />
 	<meta property="og:description" content="Watch your favourite shows and movies free online" />
-	<meta property="og:image" content="http://bossflix.org/og-image-bossflix.png" />
+	<meta property="og:image" content="/og-image-bossflix.png" />
 
 	<!-- Twitter -->
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:url" content="http://bossflix.org/" />
+	<meta name="twitter:url" content="https://bossflix.org/" />
 	<meta name="twitter:title" content="BossFlix - watch your favourite shows and movies free online" />
 	<meta name="twitter:description" content="BossFlix - watch your favourite shows and movies free online" />
-	<meta name="twitter:image" content="http://bossflix.org/og-image-bossflix.png" />
+	<meta name="twitter:image" content="/og-image-bossflix.png" />
 
 	<meta name="keywords" content="streaming, movies, tv shows, free, online, watch, bossflix, boss flix, bossflix.org" />
 </svelte:head>
 
 <svelte:window
 	onbeforeunload={() => {
-		localStorage.setItem('bf-watched', JSON.stringify(watchedStore.toJSON()));
+		localStorage.setItem('bf-watched', JSON.stringify(historyStorage.toJSON()));
 	}}
 />
 
-{#snippet Link(href: string, label: string, icon: Component<Record<string, any>, {}, ''>)}
+{#snippet Link(href: string, label: string, icon?: Component<Record<string, any>, {}, ''>)}
 	{@const Component = icon}
-	<a {href} aria-label={label} class="flex items-center justify-center gap-2 hover:text-neutral-200 hover:[&>svg]:fill-neutral-200">
-		<Component class="inline-block size-7 shrink-0 fill-[#c9d3ee]" />
+	<a {href} aria-label={label} class="flex items-center justify-center gap-2">
 		<span class="hidden sm:inline"> {label} </span>
 	</a>
 {/snippet}
+
+<header class="flex w-full border-b border-b-brand-primary-150/20 p-5 px-12 transition-all duration-600 outline-none">
+	<ul class=" flex w-full items-center gap-x-10 text-sm font-medium">
+		<li>
+			<a href="/" class="font-Chewy text-4xl text-white">BossFlix</a>
+		</li>
+
+		{#each routes as link (link.href)}
+			<li class="nav-list-item" aria-current={page.url.pathname === link.href ? 'page' : undefined}>
+				{@render Link(link.href, link.label)}
+			</li>
+		{/each}
+	</ul>
+
+	<form action="">
+		<label for="navigation-search" class="relative flex items-center">
+			<Icon.Linear.Search class="absolute ml-2 size-6 cursor-pointer fill-brand-primary-90" />
+			<input
+				type="text"
+				name="query"
+				id="navigation-search"
+				autocomplete="on"
+				placeholder="Search for a show, movie..."
+				data-sveltekit-keepfocus
+				spellcheck="false"
+				class="w-sm rounded-lg border-0 bg-brand-primary-150/7.5 px-5 pl-10 text-sm font-medium text-primary outline-none placeholder:font-normal placeholder:text-brand-primary-90 focus:ring-2 focus:ring-brand-primary-90"
+			/>
+		</label>
+	</form>
+</header>
 
 <main>
 	{@render children?.()}
 </main>
 
-<header class="flex w-full border-t border-t-brand-primary-150/20 bg-surface px-4 py-6 transition-all duration-600 outline-none">
-	<ul class="container mx-auto flex h-full w-full items-center gap-x-10 text-primary">
-		<li class="mr-auto">
-			<a href="/" class="font-Chewy text-4xl text-white">BF</a>
-		</li>
+<style lang="postcss">
+	@reference 'tailwindcss';
 
-		{#each routes as link (link.href)}
-			<li class="first:pl-8 last:ml-auto">
-				{@render Link(link.href, link.label, link.icon)}
-			</li>
-		{/each}
-	</ul>
-</header>
+	.nav-list-item {
+		position: relative;
+	}
+
+	.nav-list-item[aria-current='page']::after {
+		content: '';
+
+		position: absolute;
+		left: 0;
+		bottom: -4px;
+
+		width: 100%;
+		height: 2px;
+
+		background-color: #98a4f7;
+		view-transition-name: indicator;
+	}
+</style>

@@ -160,9 +160,12 @@ export namespace Imdb {
 			title: {
 				id: string;
 				originalTitleText: originalTitleText;
-				releaseYear: ReleaseYear;
-				titleType: TitleType;
 				primaryImage: primaryImage;
+				ratingsSummary: ratingsSummary;
+				runtime: runtime;
+				releaseDate: ReleaseDate;
+				titleGenres: titleGenres;
+				titleType: TitleType;
 			};
 		}
 	}

@@ -7,8 +7,8 @@
 	import { page } from '$app/state';
 	import { onMount, untrack } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { goto, invalidate, preloadData } from '$app/navigation';
-	import { capitalize, fixDigits, outsideClick, SourceBuilder, watchedStore } from '$lib';
+	import { goto, invalidate } from '$app/navigation';
+	import { capitalize, fixDigits, outsideClick, SourceBuilder, historyStorage } from '$lib';
 	import { EpisodesMenu, Loader, MediaCard, DropdownMenu, OptionsDropdown } from '$lib/components/ui';
 	import { Icon } from '$lib/icons';
 
@@ -99,6 +99,8 @@
 		}
 	}
 
+	let messages = $state<any[]>([]);
+
 	async function handleMessage(
 		event: MessageEvent<any> & {
 			currentTarget: EventTarget & Window;
@@ -112,6 +114,13 @@
 
 		if (isEventSubtitle && arePlayerSubtitlesOn && !playerOptions.autoSubtitles && defaultSource === 'vidsrc') {
 			playerJsMessageEmitter(iframeRef?.contentWindow, 'subtitle', -1);
+		}
+
+		if (!isPlayerEvent(incomingMessage) && incomingMessage.event.includes('subtitle')) {
+			messages.push(incomingMessage);
+			if (messages.length > 50) {
+				messages.shift();
+			}
 		}
 
 		if (isPlayerEvent(incomingMessage) && playerOptions.autoNext) {
@@ -140,7 +149,7 @@
 
 	function handleSeasonMark() {
 		const episodesRange = Array.from(Array(seasonEdges.length), (_, index) => index + 1);
-		watchedStore.markEpisode(params.id, seasonSeed, episodesRange);
+		historyStorage.markEpisode(params.id, seasonSeed, episodesRange);
 	}
 
 	$effect(() => {
@@ -171,18 +180,19 @@
 	$effect(() => {
 		if (isNaN(seasonSeed) || isNaN(episodeSeed)) return;
 
-		watchedStore.init(params.id, false);
-		watchedStore.markEpisode(params.id, seasonSeed, episodeSeed);
+		historyStorage.init(params.id, false);
+		historyStorage.markEpisode(params.id, seasonSeed, episodeSeed);
 	});
 
 	onMount(async () => {
 		const urlParams = page.url.searchParams;
+
 		if (!urlParams.has('season') || !urlParams.has('episode')) {
 			await updateURL(seasonSeed, episodeSeed);
 		}
 
-		if (watchedStore.totalEpisodes(params.id) === 0 || watchedStore.areEntriesEmpty(params.id)) {
-			watchedStore.setEntries(params.id, {
+		if (historyStorage.totalEpisodes(params.id) === 0 || historyStorage.areEntriesEmpty(params.id)) {
+			historyStorage.setEntries(params.id, {
 				posterUrl: data.seriesMeta?.primaryImage?.url || '',
 				title,
 				releaseYear: year,
@@ -219,7 +229,17 @@
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen;"
 			allowfullscreen
 		></iframe>
-		<!-- {JSON.stringify(data.seriesEpisodes, null, 2)} -->
+		<!-- <button
+			type="button"
+			class=" flex cursor-pointer items-center gap-x-1 rounded-md bg-brand-primary-150/15 px-2.5 py-1.5
+	   text-xs text-white ring-1 ring-white/20 backdrop-blur hover:bg-brand-primary-150/25"
+			onclick={() => {
+				playerJsMessageEmitter(iframeRef?.contentWindow, 'subtitles');
+			}}
+		>
+			Subtitle experiment
+		</button>
+		{JSON.stringify(messages, null, 2)} -->
 
 		<div
 			class="pointer-events-none"
@@ -313,7 +333,7 @@
 		</div>
 
 		<article class="Plot mt-2 max-sm:text-center">
-			<h1 class="text-4xl font-bold">{title}</h1>
+			<h1 class="text-3xl font-bold">{episodesForUI[episodeSeed - 1]?.node.titleText.text}</h1>
 			<p class="ml-1 text-sm text-primary">
 				{episodePlot}
 			</p>
@@ -339,12 +359,11 @@
 					{@const episode = episodeNode.node}
 					{@const episodeNumber = episode.series.episodeNumber.episodeNumber}
 					{@const isEntryCurrentEpisode = episodeNumber === episodeSeed}
-
 					<button
 						type="button"
 						onclick={() => updateEpisode(episodeNumber)}
 						class={`size-10 cursor-pointer rounded border-neutral-600 text-primary/40 ring-[1.5px] ring-transparent ring-offset-[1.5px] ring-offset-neutral-850
-						${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : watchedStore.isEpisodeMarked(params.id, seasonSeed, episodeNumber) ? 'bg-brand-yellow-80/50 text-[#141312]!' : 'bg-[#171926] hover:ring-neutral-500'}
+						${isEntryCurrentEpisode ? 'bg-brand-primary-200 text-white' : historyStorage.isEpisodeMarked(params.id, seasonSeed, episodeNumber) ? 'bg-brand-yellow-80/50 text-[#141312]!' : 'bg-[#171926] hover:ring-neutral-500'}
 						text-center align-middle leading-10 font-semibold`}
 					>
 						{episodeNumber}

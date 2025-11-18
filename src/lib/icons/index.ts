@@ -9,10 +9,12 @@ import Camera_Linear from './Linear/Images/Camera.svelte';
 import Server_Linear from './Linear/Security/Server.svelte';
 import Check_Linear from './Linear/Basic/Check.svelte';
 import Slash_Linear from './Linear/Basic/Slash.svelte';
+import Search_Linear from './Linear/Basic/Search.svelte';
 // Filled
 import Server_Filled from './Filled/Security/Server.svelte';
 // FA
 import CameraMovie_Fa from './Fa/CameraMovie.svelte';
+import Subtitles_Fa from './Fa/ClosedCaptioning.svelte';
 
 export const Icon = {
 	Linear: {
@@ -26,6 +28,7 @@ export const Icon = {
 		Server: Server_Linear,
 		Check: Check_Linear,
 		Slash: Slash_Linear,
+		Search: Search_Linear,
 	},
 	Duotone: {
 		Info: Info_Duotone,
@@ -35,6 +38,7 @@ export const Icon = {
 	},
 	Fa: {
 		CameraMovie: CameraMovie_Fa,
+		Subtitles: Subtitles_Fa,
 	},
 } as const;
 

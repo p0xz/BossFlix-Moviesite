@@ -4,4 +4,4 @@
 	let { data }: PageProps = $props();
 </script>
 
-<p>Series</p>
+<p>subs</p>

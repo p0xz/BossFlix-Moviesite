@@ -24,6 +24,10 @@ const gq = {
 					month
 					year
 				}
+
+				releaseYear {
+					endYear
+				}
 				titleGenres @include(if: $full) {
 					genres {
 						genre {
@@ -104,6 +108,7 @@ const gq = {
 					month
 					year
 				}
+
 				titleGenres {
 					genres {
 						genre {
@@ -240,6 +245,56 @@ const gq = {
 										}
 									}
 								}
+							}
+						}
+					}
+				}
+			}
+		}
+	`,
+	advancedSearchTitles: /* GraphQL */ `
+		query SearchTitles(
+			$first: Int = 50
+			$titleType: [String!] = ["movie"]
+			$sortBy: AdvancedTitleSearchSortBy! = POPULARITY
+			$sortOrder: SortOrder! = ASC
+		) {
+			advancedTitleSearch(
+				first: $first
+				constraints: { titleTypeConstraint: { anyTitleTypeIds: $titleType } }
+				sort: { sortBy: $sortBy, sortOrder: $sortOrder }
+			) {
+				edges {
+					node {
+						title {
+							id
+							originalTitleText {
+								text
+							}
+							primaryImage {
+								url
+							}
+							ratingsSummary {
+								aggregateRating
+							}
+							runtime {
+								seconds
+							}
+							releaseDate {
+								day
+								month
+								year
+							}
+							titleGenres {
+								genres {
+									genre {
+										text
+									}
+								}
+							}
+							titleType {
+								id
+								text
 							}
 						}
 					}

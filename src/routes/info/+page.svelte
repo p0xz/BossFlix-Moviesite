@@ -24,10 +24,7 @@
 			feature: 'Enable transfer of watched history and favourites across devices',
 			status: ROADMAP_STATUS.IN_WORK,
 		},
-		{
-			feature: 'Add personalized recommendation features',
-			status: ROADMAP_STATUS.IN_WORK,
-		},
+
 		{
 			feature: 'Introduce advanced filtering options for homepage search',
 			status: ROADMAP_STATUS.IN_WORK,

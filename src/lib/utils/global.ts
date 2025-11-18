@@ -11,11 +11,7 @@ export function debounce<F extends (...args: any[]) => void>(func: F, waitFor: n
 	};
 }
 
-export function arraysEqual<T>(
-	a: T[] = [],
-	b: T[] = [],
-	comparator: (a: T, b: T, indexA: number, indexB: number) => boolean,
-): boolean {
+export function arraysEqual<T>(a: T[] = [], b: T[] = [], comparator: (a: T, b: T, indexA: number, indexB: number) => boolean): boolean {
 	if (a === b) return true;
 	if (!a || !b) return false;
 	if (a.length !== b.length) return false;
@@ -72,4 +68,17 @@ export function isReleased(dates: { year: number; month: number; day: number }) 
 
 export function capitalize(value: string) {
 	return String(value).charAt(0).toUpperCase() + value.slice(1);
+}
+
+/**
+ * Replaces the end of an IMDb URL to request a resized image.
+ * @param url The original URL from the API (e.g., ..._V1_.jpg)
+ * @param width The target width in pixels
+ */
+export function getResizedImage(url: string | undefined, width = 400) {
+	if (!url) return '';
+
+	// This is the new, precise replacement
+	// It replaces the original "_V1_.jpg" with a resized version
+	return url.replace('_V1_.jpg', `_V1_QL75_UX${width}_AL_.jpg`);
 }

@@ -30,6 +30,7 @@ export const load = (async ({ params, url, fetch, parent, depends, untrack }) =>
 
 	depends('app:episodes');
 
+	// console.dir(episodeResponse.data.title, { depth: Infinity });
 	return {
 		seriesEpisodes: episodeResponse.data.title?.episodes,
 	};

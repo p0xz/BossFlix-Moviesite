@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import type { sourceOrigins } from '$lib/utils/sources';
-	import { capitalize, outsideClick, SourceBuilder, watchedStore } from '$lib';
+	import { capitalize, outsideClick, SourceBuilder, historyStorage } from '$lib';
 	import { onMount } from 'svelte';
 	import { Icon } from '$lib/icons';
 	import { Loader, MediaCard } from '$lib/components/ui';
@@ -29,8 +29,8 @@
 	});
 
 	onMount(() => {
-		watchedStore.init(params.id, 0, true);
-		watchedStore.setEntries(params.id, {
+		historyStorage.init(params.id, true);
+		historyStorage.setEntries(params.id, {
 			title,
 			posterUrl: movie?.primaryImage?.url ?? '',
 			genres: genres ?? [],

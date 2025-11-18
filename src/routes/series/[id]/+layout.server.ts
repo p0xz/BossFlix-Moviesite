@@ -34,8 +34,8 @@ export const load = (async ({ params, url, fetch, untrack }) => {
 				};
 			}>,
 	);
-	// console.log(response.data.title);
 
+	// console.dir(response, { depth: Infinity });
 	return {
 		seriesMeta: response.data.title,
 	};

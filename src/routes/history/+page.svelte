@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatRuntime, watchedStore } from '$lib';
+	import { formatRuntime, historyStorage } from '$lib';
 	import { MediaCard } from '$lib/components/ui';
 	import type { SvelteMap, SvelteSet } from 'svelte/reactivity';
 </script>
@@ -9,7 +9,7 @@
 </svelte:head>
 
 <div class="container mx-auto grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] place-items-center gap-8 py-8">
-	{#each watchedStore.state.entries() as [id, v]}
+	{#each historyStorage.state.entries() as [id, v]}
 		{@const watchedEntries = v.entries}
 		{@const seasonsMap = v.seasons}
 
@@ -20,7 +20,7 @@
 
 		{@const watchedCount = isSeries ? Array.from(seasonsMap.values()).reduce((acc, set) => acc + set.size, 0) : 0}
 
-		{@const lastWatched = watchedStore.lastWatched(id)}
+		{@const lastWatched = historyStorage.lastWatched(id)}
 
 		<a
 			href={`/${isSeries ? 'series' : 'movie'}/${id}${isSeries ? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}` : ''}`}
@@ -47,7 +47,7 @@
 	<!-- <button
 		class="bg-beta absolute bottom-24 ml-1 cursor-pointer rounded px-2 py-0.5 font-Poppins font-medium"
 		onclick={() => {
-			watchedStore.reset();
+			historyStorage.reset();
 			localStorage.setItem('bf-watched', '[]');
 		}}
 	>

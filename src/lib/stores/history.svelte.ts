@@ -1,6 +1,6 @@
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 
-interface WatchedStoreEntries {
+interface historyStorageEntries {
 	posterUrl: string;
 	title: string;
 	titleType: string;
@@ -12,15 +12,15 @@ interface WatchedStoreEntries {
 	runtime?: number;
 }
 
-interface WatchedStoreValue {
-	entries: WatchedStoreEntries;
+interface historyStorageValue {
+	entries: historyStorageEntries;
 	seasons: SvelteMap<number, SvelteSet<number>> | null;
 }
 
-type WatchedStoreType = SvelteMap<string, WatchedStoreValue>;
+type historyStorageType = SvelteMap<string, historyStorageValue>;
 
-class WatchedStore {
-	#store: WatchedStoreType;
+class HistoryStorage {
+	#store: historyStorageType;
 
 	constructor() {
 		this.#store = new SvelteMap();
@@ -54,12 +54,13 @@ class WatchedStore {
 		return !!seasonMap?.get(season)?.has(episode);
 	}
 
-	setEntries(imdbId: string, entry: WatchedStoreEntries): this {
+	setEntries(imdbId: string, entry: historyStorageEntries): this {
 		const storeEntry = this.#store.get(imdbId);
+
 		if (storeEntry) {
-			// SvelteMap is reactive, so mutating the nested object is fine
 			storeEntry.entries = entry;
 		}
+
 		return this;
 	}
 	areEntriesEmpty(imdbId: string): boolean {
@@ -97,7 +98,7 @@ class WatchedStore {
 				genres: [],
 				totalEpisodes: 0,
 				totalSeasons: 0,
-				runtime: 0, // Added
+				runtime: 0,
 			},
 			seasons: isMovie ? null : new SvelteMap<number, SvelteSet<number>>(),
 		});
@@ -139,7 +140,7 @@ class WatchedStore {
 		if (!Array.isArray(data)) return;
 
 		for (const [imdbId, payload] of data ?? []) {
-			const entries: WatchedStoreEntries = {
+			const entries: historyStorageEntries = {
 				posterUrl: payload?.entries?.posterUrl ?? '',
 				title: payload?.entries?.title ?? '',
 				titleType: payload?.entries?.titleType ?? '',
@@ -175,4 +176,4 @@ class WatchedStore {
 	}
 }
 
-export const watchedStore = new WatchedStore();
+export const historyStorage = new HistoryStorage();

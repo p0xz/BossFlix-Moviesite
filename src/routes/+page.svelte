@@ -2,7 +2,7 @@
 	import { fly } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
 	import { quintIn, quintOut } from 'svelte/easing';
-	import { formatRuntime, watchedStore, debounce, isReleased } from '$lib';
+	import { formatRuntime, historyStorage, debounce, isReleased } from '$lib';
 	import { REQUIRED_LENGTH_TO_SUBMIT } from '$lib/utils/constants';
 	import { MediaCard } from '$lib/components/ui';
 
@@ -26,6 +26,45 @@
 		previousInputValue = query;
 		submitDebounced(<HTMLFormElement>currentTarget.form);
 	}
+
+	const searchResults = $derived.by(() => {
+		if (!data?.search?.edges) return [];
+
+		const validEdges = data.search.edges.filter((edge) => edge.node.entity?.primaryImage?.url);
+
+		return validEdges.map((searchResult) => {
+			const entity = searchResult.node.entity;
+			const titleType = entity.titleType.id;
+
+			const [lastWatchedSeason, lastWatchedEpisode] = historyStorage.lastWatched(entity.id);
+			const totalSeasons = entity.episodes?.displayableSeasons?.total;
+
+			let href = `/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${entity.id}`;
+			if (titleType === 'tvSeries') {
+				href += `/?season=${lastWatchedSeason}&episode=${lastWatchedEpisode}`;
+			}
+
+			const genres = entity.titleGenres?.genres
+				.map((g) => g.genre.text)
+				.slice(0, 3)
+				.join(' • ');
+
+			const labels = [
+				totalSeasons ? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}` : formatRuntime(entity?.runtime?.seconds || 0),
+				isReleased(entity.releaseDate || {}) ? '' : 'upcoming',
+			];
+
+			return {
+				id: entity.id,
+				href: href,
+				title: entity.titleText.text,
+				posterUrl: entity.primaryImage?.url,
+				genres: genres,
+				rating: entity.ratingsSummary?.aggregateRating ?? 'N/A',
+				labels: labels,
+			};
+		});
+	});
 </script>
 
 <svelte:head>
@@ -33,59 +72,22 @@
 </svelte:head>
 
 <div class="flex min-h-full flex-col items-center justify-center py-8">
-	<h1 class="relative font-Chewy text-5xl font-bold tracking-wider">
-		BossFlix
-		<span class="bg-beta absolute bottom-0 ml-1 rounded px-2 py-0.5 font-Poppins text-sm font-medium"> beta </span>
-	</h1>
-	<form data-sveltekit-keepfocus action="/" class="relative flex flex-col items-center justify-center gap-y-2 py-6">
-		<!-- svelte-ignore a11y_autofocus -->
-		<input
-			type="text"
-			name="query"
-			autocomplete="on"
-			autofocus
-			placeholder="Movies, series, shows..."
-			data-sveltekit-keepfocus
-			oninput={handleInput}
-			spellcheck="false"
-			class="min-h-13 w-sm rounded-lg border-2 border-brand-primary-150/20 bg-brand-primary-150/10 px-5 ring-0 outline-none placeholder:font-light placeholder:text-neutral-300 focus:border-white max-md:max-w-[90%]"
-		/>
-
-		<p class="text-sm text-primary/80">
-			we recommend checking <a href="/info" class="text-primary underline">INFO</a>
-		</p>
-	</form>
-
 	<ul class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]">
-		{#each data?.search?.edges?.filter((edge) => edge.node.entity?.primaryImage?.url) as searchResult (searchResult.node.entity.id)}
-			{@const entity = searchResult.node.entity}
-			{@const titleType = entity.titleType.id}
-			{@const lastWatched = watchedStore.lastWatched(entity.id)}
-			{@const totalSeasons = entity.episodes?.displayableSeasons?.total}
+		{#each searchResults as result (result.id)}
 			<li
 				animate:flip={{ duration: 700 }}
 				in:fly={{ y: 18, opacity: 0, duration: 220, easing: quintIn }}
 				out:fly={{ y: -8, opacity: 0, duration: 160, easing: quintOut }}
 				class="w-fit text-center wrap-break-word transition-transform hover:scale-105"
+				style="content-visibility: auto;"
 			>
-				<a
-					href="/{titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/{searchResult.node.entity.id}{titleType ===
-					'tvSeries'
-						? `/?season=${lastWatched[0]}&episode=${lastWatched[1]}`
-						: ''}"
-				>
+				<a href={result.href}>
 					<MediaCard
-						posterUrl={entity.primaryImage?.url ?? ''}
-						title={entity.titleText.text}
-						genres={entity.titleGenres?.genres
-							.map((g) => g.genre.text)
-							.slice(0, 3)
-							.join(' • ')}
-						rating={entity.ratingsSummary?.aggregateRating ?? `N/A`}
-						labels={[
-							totalSeasons ? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}` : formatRuntime(entity?.runtime?.seconds || 0),
-							isReleased(entity.releaseDate || {}) ? '' : 'upcoming',
-						]}
+						posterUrl={result.posterUrl}
+						title={result.title}
+						genres={result.genres}
+						rating={result.rating}
+						labels={result.labels}
 					/>
 				</a>
 			</li>
