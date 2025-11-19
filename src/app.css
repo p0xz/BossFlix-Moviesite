@@ -61,6 +61,14 @@
 
 		@apply bg-body font-Poppins text-white;
 	}
+
+	/* Resets (removes) default increment / decrement buttons inside input[type='number'] */
+	input[type='number'],
+	input[type='number']::-webkit-outer-spin-button,
+	input[type='number']::-webkit-inner-spin-button {
+		appearance: none;
+		-webkit-appearance: none;
+	}
 }
 
 @media (width > 1920px) {

@@ -10,6 +10,7 @@ import Server_Linear from './Linear/Security/Server.svelte';
 import Check_Linear from './Linear/Basic/Check.svelte';
 import Slash_Linear from './Linear/Basic/Slash.svelte';
 import Search_Linear from './Linear/Basic/Search.svelte';
+import Trash_Linear from './Linear/Basic/Trash.svelte';
 // Filled
 import Server_Filled from './Filled/Security/Server.svelte';
 // FA
@@ -29,6 +30,7 @@ export const Icon = {
 		Check: Check_Linear,
 		Slash: Slash_Linear,
 		Search: Search_Linear,
+		Trash: Trash_Linear,
 	},
 	Duotone: {
 		Info: Info_Duotone,

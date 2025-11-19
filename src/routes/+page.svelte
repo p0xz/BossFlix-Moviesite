@@ -75,7 +75,6 @@
 	<ul class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]">
 		{#each searchResults as result (result.id)}
 			<li
-				animate:flip={{ duration: 700 }}
 				in:fly={{ y: 18, opacity: 0, duration: 220, easing: quintIn }}
 				out:fly={{ y: -8, opacity: 0, duration: 160, easing: quintOut }}
 				class="w-fit text-center wrap-break-word transition-transform hover:scale-105"
@@ -94,10 +93,3 @@
 		{/each}
 	</ul>
 </div>
-
-<style>
-	.bg-beta {
-		background: linear-gradient(353deg, #4449a9 17.51%, #7c87f7 183.08%);
-		box-shadow: 0px 1px 3px 0px rgba(255, 255, 255, 0.25) inset;
-	}
-</style>

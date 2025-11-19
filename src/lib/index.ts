@@ -9,6 +9,7 @@ export {
 	isReleased,
 	capitalize,
 	getResizedImage,
+	inputCharacterLimit,
 } from './utils/global';
 export { REQUIRED_LENGTH_TO_SUBMIT } from './utils/constants';
 export { SourceBuilder } from './utils/sources';

@@ -14,15 +14,15 @@
 	let isOpen = $state(false);
 </script>
 
-<li role="listitem" class="w-full">
+<li role="listitem" class="">
 	<details ontoggle={() => (isOpen = !isOpen)} class="accordion-details" {name} {open}>
 		<summary class="flex cursor-pointer items-center justify-between gap-2 font-medium select-none">
 			{@render title?.()}
 
-			<Icon.Linear.ArrowUp class={['size-5 fill-white transition-transform duration-500', isOpen ? 'rotate-180' : 'rotate-0']} />
+			<Icon.Linear.ArrowUp class={['size-5 fill-white transition-transform duration-500', isOpen ? 'rotate-0' : 'rotate-180']} />
 		</summary>
 
-		<div class="ml-px">
+		<div class="mx-px">
 			{@render children?.()}
 		</div>
 	</details>
