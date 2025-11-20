@@ -19,7 +19,7 @@
 		<summary class="flex cursor-pointer items-center justify-between gap-2 font-medium select-none">
 			{@render title?.()}
 
-			<Icon.Linear.ArrowUp class={['size-5 fill-white transition-transform duration-500', isOpen ? 'rotate-0' : 'rotate-180']} />
+			<Icon.Linear.ChevronUp class={['size-5 fill-white transition-transform duration-500', isOpen ? 'rotate-0' : 'rotate-180']} />
 		</summary>
 
 		<div class="mx-px">

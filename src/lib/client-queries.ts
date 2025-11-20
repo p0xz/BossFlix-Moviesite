@@ -254,16 +254,32 @@ const gq = {
 	`,
 	advancedSearchTitles: /* GraphQL */ `
 		query SearchTitles(
-			$first: Int = 50
+			$first: Int = 30
+			$jumpToPosition: Int
 			$titleType: [String!] = ["movie"]
 			$sortBy: AdvancedTitleSearchSortBy! = POPULARITY
+			$genreIds: [String!] = []
 			$sortOrder: SortOrder! = ASC
+			$minRating: Float = 0.0
+			$releaseDateStart: Date = "1900-01-01"
+			$releaseDateEnd: Date = "${new Date().getFullYear()}-12-31"
 		) {
 			advancedTitleSearch(
 				first: $first
-				constraints: { titleTypeConstraint: { anyTitleTypeIds: $titleType } }
+				jumpToPosition: $jumpToPosition
+				constraints: {
+					titleTypeConstraint: { anyTitleTypeIds: $titleType }
+					userRatingsConstraint: { aggregateRatingRange: { min: $minRating } }
+					genreConstraint: { allGenreIds: $genreIds }
+					releaseDateConstraint: { releaseDateRange: { start: $releaseDateStart, end: $releaseDateEnd } }
+				}
 				sort: { sortBy: $sortBy, sortOrder: $sortOrder }
 			) {
+				total
+				pageInfo {
+					hasPreviousPage
+					hasNextPage
+				}
 				edges {
 					node {
 						title {

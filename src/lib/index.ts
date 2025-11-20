@@ -10,8 +10,8 @@ export {
 	capitalize,
 	getResizedImage,
 	inputCharacterLimit,
+	nonDigitInputPrevent,
 } from './utils/global';
-export { REQUIRED_LENGTH_TO_SUBMIT } from './utils/constants';
 export { SourceBuilder } from './utils/sources';
 export { gq } from './client-queries';
 export { historyStorage } from './stores/history.svelte';

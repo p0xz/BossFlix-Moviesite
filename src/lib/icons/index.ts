@@ -11,6 +11,9 @@ import Check_Linear from './Linear/Basic/Check.svelte';
 import Slash_Linear from './Linear/Basic/Slash.svelte';
 import Search_Linear from './Linear/Basic/Search.svelte';
 import Trash_Linear from './Linear/Basic/Trash.svelte';
+import Chevron_Up_Linear from './Linear/Arrows/ChevronUp.svelte';
+import Chevron_Left_Linear from './Linear/Arrows/ChevronLeft.svelte';
+import Chevron_Right_Linear from './Linear/Arrows/ChevronRight.svelte';
 // Filled
 import Server_Filled from './Filled/Security/Server.svelte';
 // FA
@@ -31,6 +34,9 @@ export const Icon = {
 		Slash: Slash_Linear,
 		Search: Search_Linear,
 		Trash: Trash_Linear,
+		ChevronUp: Chevron_Up_Linear,
+		ChevronLeft: Chevron_Left_Linear,
+		ChevronRight: Chevron_Right_Linear,
 	},
 	Duotone: {
 		Info: Info_Duotone,

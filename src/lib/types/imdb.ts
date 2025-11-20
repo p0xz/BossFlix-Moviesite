@@ -149,7 +149,14 @@ export namespace Imdb {
 			text: string;
 		}
 		export interface AdvancedTitleSearch {
+			total: number;
 			edges: AdvancedTitleSearchEdge[];
+			pageInfo: {
+				startCursor: string;
+				endCursor: string;
+				hasPreviousPage: boolean;
+				hasNextPage: boolean;
+			};
 		}
 
 		export interface AdvancedTitleSearchEdge {

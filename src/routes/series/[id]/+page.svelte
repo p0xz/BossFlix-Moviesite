@@ -213,11 +213,6 @@
 </svelte:head>
 
 <div class="container mx-auto flex flex-col justify-center py-4">
-	<header class="self-center">
-		<a href="/">
-			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
-		</a>
-	</header>
 	<div class="relative mx-auto w-full overflow-hidden rounded-lg bg-surface">
 		<iframe
 			bind:this={iframeRef}

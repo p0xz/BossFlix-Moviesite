@@ -58,6 +58,7 @@
 		display: grid;
 		grid-template-rows: auto 1fr;
 		min-height: 100dvh;
+		scroll-behavior: smooth;
 
 		@apply bg-body font-Poppins text-white;
 	}

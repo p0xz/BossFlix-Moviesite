@@ -1,31 +1,10 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
-	import { flip } from 'svelte/animate';
 	import { quintIn, quintOut } from 'svelte/easing';
-	import { formatRuntime, historyStorage, debounce, isReleased } from '$lib';
-	import { REQUIRED_LENGTH_TO_SUBMIT } from '$lib/utils/constants';
+	import { formatRuntime, historyStorage, isReleased } from '$lib';
 	import { MediaCard } from '$lib/components/ui';
 
 	let { data } = $props();
-
-	let previousInputValue: string = '';
-
-	const submitDebounced = debounce((form: HTMLFormElement) => form.requestSubmit(), 300);
-
-	function handleInput(event: Event) {
-		const currentTarget = event.currentTarget as HTMLInputElement;
-		const query = currentTarget.value.trim();
-
-		if (!query.trim().length || query === previousInputValue) return;
-
-		if (query.length < REQUIRED_LENGTH_TO_SUBMIT) {
-			previousInputValue = query;
-			return;
-		}
-
-		previousInputValue = query;
-		submitDebounced(<HTMLFormElement>currentTarget.form);
-	}
 
 	const searchResults = $derived.by(() => {
 		if (!data?.search?.edges) return [];

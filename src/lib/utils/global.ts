@@ -112,10 +112,21 @@ export function getResizedImage(url: string | undefined, width = 400) {
  * @param maxLength The maximum length of characters allowed
  */
 export function inputCharacterLimit(event: KeyboardEvent, maxLength: number) {
+	if (event.ctrlKey || event.metaKey) return;
+
+	const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+	if (allowedKeys.includes(event.key)) return;
+
 	const input = event.currentTarget as HTMLInputElement;
 
 	if (input.value.length >= maxLength) {
+		event.preventDefault();
 		event.stopPropagation();
+	}
+}
+
+export function nonDigitInputPrevent(event: KeyboardEvent) {
+	if (!event.ctrlKey && !event.metaKey && event.key.length === 1 && !/[0-9]/.test(event.key)) {
 		event.preventDefault();
 	}
 }
