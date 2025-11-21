@@ -1,11 +1,8 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import { formatRuntime, historyStorage, inputCharacterLimit, isReleased, nonDigitInputPrevent } from '$lib';
+	import { formatRuntime, historyStorage, isReleased, nonDigitInputPrevent } from '$lib';
 	import { DEFAULT_RELEASE_YEAR, GENRES_LIST } from './constants';
 	import { MediaCard, MediaCardSkeleton, Accordion } from '$lib/components/ui';
-	import { flip } from 'svelte/animate';
-	import { fly } from 'svelte/transition';
-	import { quintIn, quintOut } from 'svelte/easing';
 	import Pagination from './Pagination.svelte';
 	import { Icon } from '$lib/icons';
 	import { onMount } from 'svelte';
@@ -246,7 +243,7 @@
 			<h1 class="text-5xl font-bold">Discover</h1>
 			<p class="text-primary">Browse through thousands of titles</p>
 		</article>
-		<ul class="grid grid-cols-5 place-items-center gap-y-4">
+		<ul class="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] place-items-center gap-4">
 			{#await advancedSearchUI}
 				{#each { length: PAGE_SIZE }}
 					<li>
