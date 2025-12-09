@@ -1,16 +1,15 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import type { PageProps } from './$types';
 	import type { sourceOrigins } from '$lib/utils/sources';
-	import { capitalize, outsideClick, SourceBuilder, historyStorage } from '$lib';
+	import { capitalize } from '$lib/utils/common';
+	import { outsideClick } from '$lib/attachments';
+	import { SourceBuilder } from '$lib/utils/sources';
+	import { historyStorage } from '$lib/stores/historyStore.svelte';
 	import { onMount } from 'svelte';
 	import { Icon } from '$lib/icons';
 	import { Loader, MediaCard } from '$lib/components/ui';
 
 	let { data, params }: PageProps = $props();
-
-	function streamingUrl(id: string) {
-		return `https://vidsrc-embed.ru/embed/movie?imdb=${id}`;
-	}
 
 	const movie = data?.movie;
 
@@ -29,115 +28,87 @@
 	});
 
 	onMount(() => {
-		historyStorage.init(params.id, true);
-		historyStorage.setEntries(params.id, {
+		historyStorage.init(params.id, {
 			title,
 			posterUrl: movie?.primaryImage?.url ?? '',
-			genres: genres ?? [],
+			titleType: 'movie' as const,
+			releaseYear: year ?? 0,
 			rating: rating ?? 0,
-			titleType: 'movie',
-			totalSeasons: 0,
-			totalEpisodes: 0,
-			releaseYear: year ?? null,
+			genres: genres ?? [],
 			runtime: movie?.runtime?.seconds ?? 0,
 		});
 	});
+</script> -->
+
+<script lang="ts">
+	import Rating from '$lib/core/ui/Rating.svelte';
+	import { buildSourceUrl } from '$lib/features/player/logic/sources/registry';
+
+	let { data, params } = $props();
+
+	let iframeSrc = $derived(buildSourceUrl('vidsrc', params.id));
 </script>
 
 <svelte:head>
-	<title>BossFlix • {title}</title>
+	<title>BossFlix • {data.movie.title}</title>
 </svelte:head>
 
-<svelte:window onmessage={(event) => {}} />
-
-<div class="container mx-auto flex flex-col justify-center py-4">
-	<header class="self-center">
-		<a href="/">
-			<h1 class="mb-4 justify-self-start font-Chewy text-5xl font-bold tracking-wider">BossFlix</h1>
-		</a>
-	</header>
-	<div class="relative aspect-video w-full rounded-lg bg-surface">
+<div class="container mx-auto my-6">
+	<article class="mb-4">
+		<h1 class="text-3xl font-black md:text-4xl">{data.movie.title}</h1>
+	</article>
+	<div>
 		<iframe
-			title={`${title}${year ? ` (${year})` : ''} — player`}
+			title={`${data.movie.title}${data.movie.releaseDate?.year ? ` (${data.movie.releaseDate.year})` : ''} — player`}
 			src={iframeSrc}
-			class="h-full w-full"
+			class="mx-auto mb-6 aspect-video rounded-2xl shadow-2xl ring-1 ring-white/10"
 			loading="lazy"
 			referrerpolicy="no-referrer"
-			allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+			allow="autoplay; encrypted-media; picture-in-picture; fullscreen;"
 			allowfullscreen
 		></iframe>
-		<div
-			class="pointer-events-none"
-			{@attach outsideClick(() => {
-				isServersMenuActive = false;
-			})}
-		>
-			<button
-				class="pointer-events-auto absolute top-3 right-3 flex cursor-pointer items-center gap-x-1 rounded-md bg-brand-primary-150/15 px-2.5 py-1.5
-           text-xs text-white ring-1 ring-white/20 backdrop-blur hover:bg-brand-primary-150/25"
-				onclick={() => (isServersMenuActive = !isServersMenuActive)}
-				aria-haspopup="menu"
-				aria-expanded={isServersMenuActive}
-			>
-				<Icon.Linear.Server class="size-6 shrink-0 fill-brand-primary-150/75" />
-				Servers
-			</button>
+		<section>
+			<div class="grid grid-cols-2 gap-4 rounded-xl border border-white/5 bg-surface p-6 text-sm md:grid-cols-4">
+				<div>
+					<span class="mb-1 block text-xs font-bold text-gray-500 uppercase">Rating</span>
+					<Rating rating={data.movie.rating} class="text-lg" />
+				</div>
+				<div>
+					<span class="mb-1 block text-xs font-bold text-gray-500 uppercase">Year</span>
+					<span class="text-lg font-bold text-white">
+						{data.movie.releaseDate?.year ?? 'Unknown'}
+					</span>
+				</div>
+				<div>
+					<span class="mb-1 block text-xs font-bold text-gray-500 uppercase">Type</span>
+					<span class="text-lg font-bold text-white capitalize"> Movie </span>
+				</div>
+				<div>
+					<span class="mb-1 block text-xs font-bold text-gray-500 uppercase">Genre</span>
+					<span class="text-lg font-bold text-white">
+						{data.movie.genres.slice(0, 2).join(' • ')}
+					</span>
+				</div>
+			</div>
 
-			{#if isServersMenuActive}
-				<div
-					role="menu"
-					class="pointer-events-auto absolute top-14 right-3 z-10 w-48 overflow-hidden rounded-lg
-             bg-brand-primary-150/15 shadow-2xl ring-2 ring-white/10 backdrop-blur-2xl"
-				>
-					{#each Object.keys(SourceBuilder.ORIGINS) as key (key)}
-						<button
-							role="menuitem"
-							class="w-full cursor-pointer rounded-md p-3 px-3 py-2 text-left text-sm hover:bg-brand-primary-150/25"
-							onclick={() => {
-								defaultSource = key as keyof typeof SourceBuilder.ORIGINS;
-
-								isServersMenuActive = false;
-							}}
+			<div class="mt-6 flex flex-col gap-2">
+				<span class="text-xs font-bold tracking-wider text-gray-500 uppercase">Directed By</span>
+				<div class="flex flex-wrap gap-2">
+					{#each data.movie.directors as director (director)}
+						<span
+							class="cursor-default rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-sm text-gray-200 transition-colors select-none hover:bg-white/10 hover:text-white"
 						>
-							{capitalize(key)}
-						</button>
+							{director}
+						</span>
 					{/each}
 				</div>
-			{/if}
-		</div>
-	</div>
-	<div class="mt-6 flex gap-x-4">
-		<MediaCard
-			posterUrl={data.movie.primaryImage.url ?? ''}
-			{title}
-			genres={data.movie.titleGenres.genres
-				.map((g) => g.genre.text)
-				.slice(0, 3)
-				.join(' • ')}
-			rating={data.movie?.ratingsSummary?.aggregateRating ?? `N/A`}
-		/>
+			</div>
 
-		<article class="space-y-2 text-sm text-primary">
-			<header>
-				<h1 class="text-4xl font-bold">{title}</h1>
-				<ul class="ml-1 flex gap-x-2">
-					<li class="font-medium">Directed by:</li>
-					{#each directors as director (director.node.name.nameText.text)}
-						{@const directorName = director.node.name.nameText.text}
-
-						<li class="text-white">{directorName}</li>
-					{/each}
-				</ul>
-			</header>
-			<section class="ml-1">
-				<p>
-					{#if plotText?.length}
-						{plotText}
-					{:else}
-						<Loader class="mt-2 ml-12" />
-					{/if}
+			<article class="mt-6">
+				<p class="ml-px text-lg leading-relaxed text-gray-400">
+					{data.movie.plot}
 				</p>
-			</section>
-		</article>
+			</article>
+		</section>
 	</div>
 </div>

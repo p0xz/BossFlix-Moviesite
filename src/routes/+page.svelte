@@ -1,74 +1,75 @@
 <script lang="ts">
-	import { fly } from 'svelte/transition';
-	import { quintIn, quintOut } from 'svelte/easing';
-	import { formatRuntime, historyStorage, isReleased } from '$lib';
-	import { MediaCard } from '$lib/components/ui';
+	import Rating from '$lib/core/ui/Rating.svelte';
+	import { historyStorage } from '$lib/features/history/stores/history.store.svelte';
+	import { getBestHorizontalImage } from '$lib/features/media/logic/image';
+	import { Icon } from '$lib/icons';
+	import { onMount } from 'svelte';
+	import MediaRow from './MediaRow.svelte';
 
 	let { data } = $props();
 
-	const searchResults = $derived.by(() => {
-		if (!data?.search?.edges) return [];
+	const featuredMovie = $derived(data.advancedSearch[data.featuredIndex]);
+	const continueWatching = $derived(data.advancedSearch.filter((m) => historyStorage.has(m.id)));
+	const trendingMedias = $derived(data.advancedSearch.toSpliced(data.featuredIndex, 1).slice(0, 10));
 
-		const validEdges = data.search.edges.filter((edge) => edge.node.entity?.primaryImage?.url);
+	const excludedIds = $derived(new Set([featuredMovie?.id, ...trendingMedias.map((t) => t.id)]));
 
-		return validEdges.map((searchResult) => {
-			const entity = searchResult.node.entity;
-			const titleType = entity.titleType.id;
+	const recentlyAdded = $derived(data.advancedSearch.filter((m) => !excludedIds.has(m.id)));
 
-			const [lastWatchedSeason, lastWatchedEpisode] = historyStorage.lastWatched(entity.id);
-			const totalSeasons = entity.episodes?.displayableSeasons?.total;
+	const mediaRows = $derived([
+		{ title: 'Trending Now', medias: trendingMedias },
+		{ title: 'New Releases', medias: recentlyAdded },
+	]);
 
-			let href = `/${titleType === 'movie' || titleType === 'tvMovie' ? 'movie' : 'series'}/${entity.id}`;
-			if (titleType === 'tvSeries') {
-				href += `/?season=${lastWatchedSeason}&episode=${lastWatchedEpisode}`;
-			}
+	const imageSettings = {
+		minAspectRatio: 1.6,
+		preferredAspectRatio: 1.78,
+		minWidth: 1280,
+		minHeight: 720,
+	};
 
-			const genres = entity.titleGenres?.genres
-				.map((g) => g.genre.text)
-				.slice(0, 3)
-				.join(' • ');
-
-			const labels = [
-				totalSeasons ? `${totalSeasons} season${totalSeasons > 1 ? 's' : ''}` : formatRuntime(entity?.runtime?.seconds || 0),
-				isReleased(entity.releaseDate || {}) ? '' : 'upcoming',
-			];
-
-			return {
-				id: entity.id,
-				href: href,
-				title: entity.titleText.text,
-				posterUrl: entity.primaryImage?.url,
-				genres: genres,
-				rating: entity.ratingsSummary?.aggregateRating ?? 'N/A',
-				labels: labels,
-			};
-		});
-	});
+	const bestBackdrop = $derived(
+		getBestHorizontalImage(featuredMovie.images, imageSettings) ||
+			getBestHorizontalImage(featuredMovie.images, { ...imageSettings, minAspectRatio: 1.45 }),
+	);
 </script>
 
 <svelte:head>
 	<title>BossFlix • Home</title>
 </svelte:head>
 
-<div class="flex min-h-full flex-col items-center justify-center py-8">
-	<ul class="grid grid-cols-1 justify-items-center gap-4 md:grid-cols-2 lg:grid-cols-3 2lg:grid-cols-[repeat(4,20rem)]">
-		{#each searchResults as result (result.id)}
-			<li
-				in:fly={{ y: 18, opacity: 0, duration: 220, easing: quintIn }}
-				out:fly={{ y: -8, opacity: 0, duration: 160, easing: quintOut }}
-				class="w-fit text-center wrap-break-word transition-transform hover:scale-105"
-				style="content-visibility: auto;"
-			>
-				<a href={result.href}>
-					<MediaCard
-						posterUrl={result.posterUrl}
-						title={result.title}
-						genres={result.genres}
-						rating={result.rating}
-						labels={result.labels}
-					/>
-				</a>
-			</li>
-		{/each}
-	</ul>
+<div class="container mx-auto space-y-10 pb-4">
+	<section class="group relative mt-6 h-[65vh] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10 md:h-[75vh]">
+		<img
+			src={bestBackdrop?.url}
+			alt={featuredMovie.title}
+			draggable="false"
+			class="absolute inset-0 h-full w-full object-cover opacity-60 transition-opacity duration-700 select-none group-hover:opacity-100"
+		/>
+		<div class="absolute inset-0 bg-linear-to-t from-body via-body/40 to-transparent"></div>
+		<div class="absolute bottom-0 left-0 max-w-3xl p-6 md:p-16">
+			<h1 class="mb-3 text-4xl leading-none font-black text-white drop-shadow-lg md:text-7xl">{featuredMovie.title}</h1>
+			<div class="mb-6 flex items-center gap-3 text-xs font-medium text-gray-300 md:text-sm">
+				<!-- <span class="font-bold text-green-400">{featuredMovie.rating}</span> -->
+				<Rating rating={featuredMovie.rating} />
+				<span>{featuredMovie.releaseDate?.year}</span>
+				{#if featuredMovie.tvRating}
+					<span class="rounded border border-white/20 px-1 text-[10px]">{featuredMovie.tvRating}</span>
+				{/if}
+				<span>{featuredMovie.genres}</span>
+			</div>
+			<div class="flex gap-3">
+				<button
+					class="flex cursor-pointer items-center gap-2 rounded-xl bg-white px-8 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+				>
+					<Icon.Filled.Play class="size-5 fill-current" />
+					Play
+				</button>
+			</div>
+		</div>
+	</section>
+
+	{#each mediaRows as mediaRow (mediaRow.title)}
+		<MediaRow rowTitle={mediaRow.title} medias={mediaRow.medias} />
+	{/each}
 </div>

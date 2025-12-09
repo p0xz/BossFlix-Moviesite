@@ -7,7 +7,7 @@
 		IMPLEMENTED: 'implemented',
 	} as const;
 
-	const roadmap = [
+	const roadmapList = [
 		{
 			feature: 'Introduce a unified custom player that consolidates all media sources',
 			status: ROADMAP_STATUS.IN_WORK,
@@ -74,7 +74,7 @@
 
 	<article>
 		<p class="flex flex-col items-start gap-y-4">
-			{#each roadmap as roadmapItem (roadmapItem.feature)}
+			{#each roadmapList as roadmapItem (roadmapItem.feature)}
 				{#if roadmapItem.status === ROADMAP_STATUS.IN_WORK}
 					<span
 						title="In work"

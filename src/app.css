@@ -8,6 +8,7 @@
 }
 @theme {
 	--font-Poppins: 'Poppins', sans-serif;
+	--font-Gilroy: 'Gilroy', system-ui;
 	--font-Chewy: 'Chewy', system-ui;
 
 	/* Brand color */
@@ -57,6 +58,7 @@
 	body {
 		display: grid;
 		grid-template-rows: auto 1fr;
+		grid-template-columns: minmax(0, 1fr);
 		min-height: 100dvh;
 		scroll-behavior: smooth;
 
@@ -100,5 +102,19 @@
 
 	.accordion-container {
 		interpolate-size: allow-keywords;
+	}
+
+	.overflow-bar::-webkit-scrollbar {
+		width: 6px;
+	}
+	.overflow-bar::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.overflow-bar::-webkit-scrollbar-thumb {
+		background: #334155;
+		border-radius: 4px;
+	}
+	.overflow-bar::-webkit-scrollbar-thumb:hover {
+		@apply bg-brand-primary-100;
 	}
 }

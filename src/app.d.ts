@@ -36,15 +36,7 @@ declare global {
 		 */
 		type DurationFormatStyle = 'digital' | 'long' | 'narrow' | 'short';
 
-		type DurationFormatUnitSingular =
-			| 'day'
-			| 'hour'
-			| 'minute'
-			| 'month'
-			| 'quarter'
-			| 'second'
-			| 'week'
-			| 'year';
+		type DurationFormatUnitSingular = 'day' | 'hour' | 'minute' | 'month' | 'quarter' | 'second' | 'week' | 'year';
 
 		/**
 		 * An object representing the relative time format in parts

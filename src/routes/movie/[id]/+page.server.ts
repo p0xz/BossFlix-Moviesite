@@ -1,23 +1,16 @@
 import type { PageServerLoad } from './$types';
-import { gq, IMDB_API_URL } from '$lib';
-import { type Imdb } from '$lib/types';
+import { fetchGraphQL } from '$lib/server/api';
+import { GET_TITLE_QUERY } from '$lib/graphql/media';
+import { getMovieMetadata } from '$lib/features/media/logic/transformer';
 
 export const load = (async ({ params }) => {
 	const variables = {
 		id: params.id,
 	};
 
-	const response = await fetch(IMDB_API_URL, {
-		headers: {
-			'accept-language': 'en-US,en;q=0.9,sk;q=0.8',
-			'content-type': 'application/json',
-			'x-imdb-user-language': 'en-US',
-		},
-		body: JSON.stringify({ query: gq.title, variables }),
-		method: 'POST',
-	}).then((res) => res.json() as Promise<{ data: { title: Imdb.Movie } }>);
+	const response = await fetchGraphQL(GET_TITLE_QUERY, variables);
 
 	return {
-		movie: response.data.title,
+		movie: getMovieMetadata(response.title),
 	};
 }) satisfies PageServerLoad;

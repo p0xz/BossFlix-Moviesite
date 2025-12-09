@@ -1,56 +1,63 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { Icon } from '$lib/icons';
-	import { MAX_RESULT_WINDOW } from '$lib/utils/imdb';
-
+	import { getPaginationConfig, DEFAULT_PAGE_SIZE } from '$lib/core/config/pagination.config';
 	interface Props {
 		totalCount: number;
 		pageSize?: number;
 		currentPage: number;
 	}
 
-	let { totalCount, pageSize = 20, currentPage }: Props = $props();
+	let { totalCount, currentPage }: Props = $props();
+
+	const PAGINATION_CONFIG = getPaginationConfig(DEFAULT_PAGE_SIZE);
 
 	const totalPages = $derived.by(() => {
-		const theoreticalPages = Math.ceil(totalCount / pageSize);
-		const apiLimitPages = Math.floor(MAX_RESULT_WINDOW / pageSize);
-		return Math.min(theoreticalPages, apiLimitPages);
+		const theoreticalPages = Math.ceil(totalCount / DEFAULT_PAGE_SIZE);
+		return Math.min(theoreticalPages, PAGINATION_CONFIG.MAX_PAGES);
 	});
 
 	const pages = $derived.by(() => {
-		const delta = 1;
-		const range: (number | string)[] = [];
-		const rangeWithDots: (number | string)[] = [];
-		let length: number | undefined;
+		const VISIBLE_RANGE = 1;
+		const pageNumbers: (number | string)[] = [];
 
-		for (let index = 1; index <= totalPages; index++) {
-			if (index === 1 || index === totalPages || (index >= currentPage - delta && index <= currentPage + delta)) {
-				range.push(index);
-			}
+		// Always show first page
+		pageNumbers.push(1);
+
+		// Calculate visible range around current page
+		const rangeStart = Math.max(2, currentPage - VISIBLE_RANGE);
+		const rangeEnd = Math.min(totalPages - 1, currentPage + VISIBLE_RANGE);
+
+		// Add ellipsis after first page if needed
+		if (rangeStart > 2) {
+			pageNumbers.push('...');
 		}
 
-		for (const index of range) {
-			if (length) {
-				if (Number(index) - length === 2) {
-					rangeWithDots.push(length + 1);
-				} else if (Number(index) - length !== 1) {
-					rangeWithDots.push('...');
-				}
-			}
-			rangeWithDots.push(index);
-			length = Number(index);
+		// Add pages in visible range
+		for (let index = rangeStart; index <= rangeEnd; index++) {
+			pageNumbers.push(index);
 		}
 
-		return rangeWithDots;
+		// Add ellipsis before last page if needed
+		if (rangeEnd < totalPages - 1) {
+			pageNumbers.push('...');
+		}
+
+		// Always show last page (if it exists and isn't page 1)
+		if (totalPages > 1) {
+			pageNumbers.push(totalPages);
+		}
+
+		return pageNumbers;
 	});
 
 	function getPageUrl(targetPage: number | string) {
 		if (targetPage === '...') return null;
+		const params = new URLSearchParams(page.url.searchParams);
 
-		const url = new URL(page.url);
-		url.searchParams.set('page', String(targetPage));
+		params.set('page', String(targetPage));
 
-		return url.pathname + url.search;
+		return page.url.pathname + '?' + params.toString();
 	}
 
 	const hasPreviousPage = $derived(currentPage > 1);

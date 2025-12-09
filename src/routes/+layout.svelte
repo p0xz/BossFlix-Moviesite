@@ -1,8 +1,8 @@
 <script lang="ts">
-	import '../lib/css/fontfaces.css';
+	import '$lib/css/fontfaces.css';
 	import '../app.css';
 	import { onMount, type Component } from 'svelte';
-	import { historyStorage } from '$lib';
+	import { historyStorage } from '$lib/features/history/stores/history.store.svelte';
 	import { Icon } from '$lib/icons';
 	import { page } from '$app/state';
 	import { onNavigate } from '$app/navigation';
@@ -10,8 +10,7 @@
 	let { children } = $props();
 
 	onMount(() => {
-		const bfWatched = localStorage.getItem('bf-watched');
-		if (bfWatched) historyStorage.fromJSON(JSON.parse(bfWatched));
+		historyStorage.load();
 	});
 
 	const routes = [
@@ -62,7 +61,7 @@
 
 <svelte:window
 	onbeforeunload={() => {
-		localStorage.setItem('bf-watched', JSON.stringify(historyStorage.toJSON()));
+		historyStorage.save();
 	}}
 />
 
@@ -86,13 +85,12 @@
 		{/each}
 	</ul>
 
-	<form action="">
+	<form action="/search">
 		<label for="navigation-search" class="relative flex items-center">
 			<Icon.Linear.Search class="absolute ml-2 size-6 cursor-pointer fill-brand-primary-90" />
 			<input
 				type="text"
-				name="query"
-				id="navigation-search"
+				name="q"
 				autocomplete="on"
 				placeholder="Search for a show, movie..."
 				data-sveltekit-keepfocus
