@@ -482,7 +482,7 @@
 		<iframe
 			title={`${data.series.metadata.title}${data.series.metadata.releaseDate?.year ? ` (${data.series.metadata.releaseDate.year})` : ''} — player`}
 			src={iframeSrc}
-			class="mx-auto mb-6 aspect-video rounded-2xl shadow-2xl ring-1 ring-white/10"
+			class="mx-auto mb-6 aspect-video w-full rounded-2xl shadow-2xl ring-1 ring-white/10"
 			loading="lazy"
 			referrerpolicy="no-referrer"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen;"
