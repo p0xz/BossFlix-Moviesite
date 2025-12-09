@@ -1,8 +1,10 @@
 <script lang="ts">
 	import Rating from '$lib/core/ui/Rating.svelte';
 	import { historyStorage } from '$lib/features/history/stores/history.store.svelte';
+	import { getResponsiveImage } from '$lib/features/media/logic/image';
 	import { getBestHorizontalImage } from '$lib/features/media/logic/image';
 	import { Icon } from '$lib/icons';
+
 	import { onMount } from 'svelte';
 	import MediaRow from './MediaRow.svelte';
 
@@ -32,6 +34,8 @@
 		getBestHorizontalImage(featuredMovie.images, imageSettings) ||
 			getBestHorizontalImage(featuredMovie.images, { ...imageSettings, minAspectRatio: 1.45 }),
 	);
+
+	const { src, srcset } = $derived(getResponsiveImage(bestBackdrop?.url, 1280));
 </script>
 
 <svelte:head>
@@ -43,7 +47,8 @@
 		class="group relative mt-6 h-[65vh] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10 md:h-[75vh]"
 	>
 		<img
-			src={bestBackdrop?.url}
+			{src}
+			{srcset}
 			alt={featuredMovie.title}
 			draggable="false"
 			class="absolute inset-0 h-full w-full object-cover opacity-60 transition-opacity duration-700 select-none group-hover:opacity-100"
