@@ -37,7 +37,7 @@
 <section class="group/section relative py-4">
 	<div class="mb-4 flex items-center justify-between">
 		<h2 class="text-lg font-bold text-white md:text-2xl">{rowTitle}</h2>
-		<button class="text-brand text-xs transition-colors hover:text-white hover:underline">View All</button>
+		<!-- <button class="text-brand text-xs transition-colors hover:text-white hover:underline">View All</button> -->
 	</div>
 
 	<div class="relative">
@@ -54,16 +54,22 @@
 			</button>
 		{/if}
 
-		<div bind:this={scrollContainer} onscroll={updateScrollState} class="no-scrollbar flex gap-x-6 overflow-x-auto scroll-smooth pb-4">
+		<div
+			bind:this={scrollContainer}
+			onscroll={updateScrollState}
+			class="no-scrollbar flex gap-x-6 overflow-x-auto scroll-smooth pb-4"
+		>
 			{#each medias as media (media.id)}
-				<MediaCard
-					class="w-72! shrink-0 transition-transform duration-300 hover:scale-105"
-					genres={media.genres}
-					rating={media.rating}
-					labels={media.labels}
-					posterUrl={media.posterUrl}
-					title={media.title}
-				/>
+				<a href={media.href}>
+					<MediaCard
+						class="w-72! shrink-0 transition-transform duration-300 hover:scale-105"
+						genres={media.genres}
+						rating={media.rating}
+						labels={media.labels}
+						posterUrl={media.posterUrl}
+						title={media.title}
+					/>
+				</a>
 			{/each}
 		</div>
 

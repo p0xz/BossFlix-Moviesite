@@ -61,12 +61,13 @@
 		<iframe
 			title={`${data.movie.title}${data.movie.releaseDate?.year ? ` (${data.movie.releaseDate.year})` : ''} — player`}
 			src={iframeSrc}
-			class="mx-auto mb-6 aspect-video rounded-2xl shadow-2xl ring-1 ring-white/10"
+			class="mx-auto mb-6 aspect-video w-full rounded-2xl shadow-2xl ring-1 ring-white/10"
 			loading="lazy"
 			referrerpolicy="no-referrer"
 			allow="autoplay; encrypted-media; picture-in-picture; fullscreen;"
 			allowfullscreen
 		></iframe>
+		<!-- <div class="mx-auto mb-6 aspect-video rounded-2xl shadow-2xl ring-1 ring-white/10"></div> -->
 		<section>
 			<div class="grid grid-cols-2 gap-4 rounded-xl border border-white/5 bg-surface p-6 text-sm md:grid-cols-4">
 				<div>

@@ -39,7 +39,9 @@
 </svelte:head>
 
 <div class="container mx-auto space-y-10 pb-4">
-	<section class="group relative mt-6 h-[65vh] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10 md:h-[75vh]">
+	<section
+		class="group relative mt-6 h-[65vh] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10 md:h-[75vh]"
+	>
 		<img
 			src={bestBackdrop?.url}
 			alt={featuredMovie.title}
@@ -59,12 +61,13 @@
 				<span>{featuredMovie.genres}</span>
 			</div>
 			<div class="flex gap-3">
-				<button
+				<a
+					href={featuredMovie.href}
 					class="flex cursor-pointer items-center gap-2 rounded-xl bg-white px-8 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
 				>
 					<Icon.Filled.Play class="size-5 fill-current" />
 					Play
-				</button>
+				</a>
 			</div>
 		</div>
 	</section>
