@@ -25,6 +25,8 @@ jobs:
 
       - name: Build
         run: bun run build
+        env:
+          GRAPHQL_ENDPOINT: ${{ secrets.GRAPHQL_ENDPOINT }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v5
