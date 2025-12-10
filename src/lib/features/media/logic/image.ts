@@ -2,7 +2,7 @@ import type { ImdbConnection, ImdbImage } from '$lib/graphql/types/responses';
 
 const DEFAULT_WIDTHS = [320, 480, 640, 768, 960, 1024, 1280, 1920, 2560, 3840];
 
-export function getResizedImage(url: string | undefined, width = 640, quality = 95): string {
+export function getResizedImage(url: string | undefined, width = 640, quality = 75): string {
 	if (!url) return '';
 
 	if (!url.includes('media-amazon.com')) return url;
@@ -153,7 +153,13 @@ export function getBestHorizontalImage(
 		filterStillFrames?: boolean;
 	} = {},
 ): ImdbImage | null {
-	const { minAspectRatio = 1.5, preferredAspectRatio = 16 / 9, minWidth = 1000, minHeight = 500, filterStillFrames = true } = options;
+	const {
+		minAspectRatio = 1.5,
+		preferredAspectRatio = 16 / 9,
+		minWidth = 1000,
+		minHeight = 500,
+		filterStillFrames = true,
+	} = options;
 
 	// Filter for horizontal images
 	const horizontalImages = imagesData.edges
@@ -219,8 +225,14 @@ export function getBestVerticalImage(
 	return scoredImages[0].image;
 }
 
-export function getHorizontalImagesSorted(imagesData: ImagesData, minAspectRatio = 1.5, preferredAspectRatio = 16 / 9): ImageNode[] {
-	const horizontalImages = imagesData.edges.map((edge) => edge.node).filter((img) => isHorizontalImage(img, minAspectRatio));
+export function getHorizontalImagesSorted(
+	imagesData: ImagesData,
+	minAspectRatio = 1.5,
+	preferredAspectRatio = 16 / 9,
+): ImageNode[] {
+	const horizontalImages = imagesData.edges
+		.map((edge) => edge.node)
+		.filter((img) => isHorizontalImage(img, minAspectRatio));
 
 	return horizontalImages
 		.map((img) => ({ image: img, score: calculateImageScore(img, preferredAspectRatio) }))
