@@ -5,7 +5,6 @@
 	import { getBestHorizontalImage } from '$lib/features/media/logic/image';
 	import { Icon } from '$lib/icons';
 
-	import { onMount } from 'svelte';
 	import MediaRow from './MediaRow.svelte';
 
 	let { data } = $props();
@@ -32,7 +31,10 @@
 
 	const bestBackdrop = $derived(
 		getBestHorizontalImage(featuredMovie.images, imageSettings) ||
-			getBestHorizontalImage(featuredMovie.images, { ...imageSettings, minAspectRatio: 1.45 }),
+			getBestHorizontalImage(featuredMovie.images, {
+				...imageSettings,
+				minAspectRatio: 1.45,
+			}),
 	);
 
 	const { src, srcset } = $derived(getResponsiveImage(bestBackdrop?.url, 1280));

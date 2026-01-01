@@ -54,7 +54,6 @@
 	function getPageUrl(targetPage: number | string) {
 		if (targetPage === '...') return null;
 		const params = new URLSearchParams(page.url.searchParams);
-
 		params.set('page', String(targetPage));
 
 		return page.url.pathname + '?' + params.toString();
@@ -87,7 +86,9 @@
 				<a
 					href={isCurrent ? undefined : getPageUrl(page)}
 					class="flex size-10 items-center justify-center rounded-lg text-sm font-bold transition-colors
-                        {isCurrent ? 'cursor-default bg-brand-primary-100 text-body' : 'cursor-pointer text-white hover:bg-surface'}"
+                        {isCurrent
+						? 'cursor-default bg-brand-primary-100 text-body'
+						: 'cursor-pointer text-white hover:bg-surface'}"
 				>
 					{page}
 				</a>

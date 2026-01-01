@@ -40,12 +40,6 @@ export const GET: RequestHandler = async () => {
         <lastmod>${lastmod}</lastmod>
         <priority>0.80</priority>
         </url>
-        <url>
-        <loc>https://bossflix.org/settings</loc>
-        <lastmod>${lastmod}</lastmod>
-        <priority>0.80</priority>
-        </url>
-
 
         </urlset>
     `.trim();

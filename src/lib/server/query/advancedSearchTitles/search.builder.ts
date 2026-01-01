@@ -28,8 +28,6 @@ export class SearchQueryBuilder {
 		return Number.isInteger(year) ? year.toString() : null;
 	}
 
-	// Core methods
-
 	public withPagination({ page, pageSize }: { page: number; pageSize: number }) {
 		const PAGINATION_CONFIG = getPaginationConfig(pageSize);
 		const safePage = Math.min(Math.max(page, 1), PAGINATION_CONFIG.MAX_PAGES);
@@ -50,7 +48,10 @@ export class SearchQueryBuilder {
 		return this;
 	}
 
-	public withSorting(sortBy: AdvancedSearchTitlesVariables['sortBy'] | null, sortOrder: AdvancedSearchTitlesVariables['sortOrder'] | null) {
+	public withSorting(
+		sortBy: AdvancedSearchTitlesVariables['sortBy'] | null,
+		sortOrder: AdvancedSearchTitlesVariables['sortOrder'] | null,
+	) {
 		if (!sortBy) sortBy = 'POPULARITY';
 		if (!sortOrder) sortOrder = 'ASC';
 
@@ -97,7 +98,11 @@ export class SearchQueryBuilder {
 		const validFrom = this.#normalizeDateInput(from);
 		const validTo = this.#normalizeDateInput(to);
 
-		this.#state.releaseDateStart = validFrom ? (this.#isISODateString(validFrom) ? validFrom : `${validFrom}-01-01`) : defaultFrom;
+		this.#state.releaseDateStart = validFrom
+			? this.#isISODateString(validFrom)
+				? validFrom
+				: `${validFrom}-01-01`
+			: defaultFrom;
 
 		this.#state.releaseDateEnd = validTo ? (this.#isISODateString(validTo) ? validTo : `${validTo}-12-31`) : defaultTo;
 

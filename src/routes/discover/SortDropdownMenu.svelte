@@ -46,7 +46,7 @@
 	})}
 >
 	<button
-		class="flex h-10 min-w-[84px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg border border-neutral-850 bg-brand-primary-150/7.5 px-4 text-sm leading-normal font-bold tracking-[0.015em] text-white transition-colors hover:bg-brand-primary-150/10"
+		class="flex h-10 min-w-21 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg border border-neutral-850 bg-brand-primary-150/7.5 px-4 text-sm leading-normal font-bold tracking-[0.015em] text-white transition-colors hover:bg-brand-primary-150/10"
 		onclick={() => {
 			isMenuOpen = !isMenuOpen;
 		}}

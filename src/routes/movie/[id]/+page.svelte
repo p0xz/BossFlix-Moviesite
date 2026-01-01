@@ -41,12 +41,47 @@
 </script> -->
 
 <script lang="ts">
+	import PlayerContainer from '$lib/features/player/components/PlayerContainer.svelte';
+	import ServerSelector from '$lib/features/player/components/ServerSelector.svelte';
 	import Rating from '$lib/core/ui/Rating.svelte';
 	import { buildSourceUrl } from '$lib/features/player/logic/sources/registry';
+	import { historyStorage } from '$lib/features/history/stores/history.store.svelte';
+	import type { SourceOrigin } from '$lib/features/player/config/source.config';
+	import { onMount } from 'svelte';
 
 	let { data, params } = $props();
 
 	let iframeSrc = $derived(buildSourceUrl('vidsrc', params.id));
+	let videoSrc = $state<string>('');
+	let selectedServer = $state<SourceOrigin | 'native'>('native');
+	let autoPlay = $state(true);
+
+	onMount(() => {
+		historyStorage.init(params.id, {
+			title: data.movie.title,
+			posterUrl: data.movie.image ?? '',
+			titleType: 'movie',
+			releaseYear: data.movie.releaseDate?.year ?? 0,
+			rating: Number(data.movie.rating) || 0,
+			genres: data.movie.genres ?? [],
+			runtime: 0,
+		});
+	});
+
+	$effect(() => {
+		if (!iframeSrc) return;
+
+		videoSrc = '';
+
+		fetch(`/api/player/resolver?url=${encodeURIComponent(iframeSrc)}`)
+			.then((res) => res.json())
+			.then((response) => {
+				videoSrc = `http://localhost:5173/api/proxy?url=${encodeURIComponent(response.videoUrl)}`;
+			})
+			.catch((e) => {
+				console.error('Failed to load native player source', e);
+			});
+	});
 </script>
 
 <svelte:head>
@@ -54,19 +89,19 @@
 </svelte:head>
 
 <div class="container mx-auto my-6">
-	<article class="mb-4">
+	<article class="mb-4 flex items-start justify-between gap-4">
 		<h1 class="text-3xl font-black md:text-4xl">{data.movie.title}</h1>
+		<ServerSelector bind:selectedServer />
 	</article>
 	<div>
-		<iframe
-			title={`${data.movie.title}${data.movie.releaseDate?.year ? ` (${data.movie.releaseDate.year})` : ''} — player`}
-			src={iframeSrc}
+		<PlayerContainer
+			url={videoSrc}
+			mediaTitle={data.movie.title}
+			imdbId={params.id}
+			bind:selectedServer
+			bind:autoPlay
 			class="mx-auto mb-6 aspect-video w-full rounded-2xl shadow-2xl ring-1 ring-white/10"
-			loading="lazy"
-			referrerpolicy="no-referrer"
-			allow="autoplay; encrypted-media; picture-in-picture; fullscreen;"
-			allowfullscreen
-		></iframe>
+		/>
 		<!-- <div class="mx-auto mb-6 aspect-video rounded-2xl shadow-2xl ring-1 ring-white/10"></div> -->
 		<section>
 			<div class="grid grid-cols-2 gap-4 rounded-xl border border-white/5 bg-surface p-6 text-sm md:grid-cols-4">

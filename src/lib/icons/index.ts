@@ -24,10 +24,22 @@ import User_Linear from './Linear/Users/User.svelte';
 import Bell_Linear from './Linear/Alerts/Bell.svelte';
 import Heart_Linear from './Linear/Basic/Heart.svelte';
 import Lock_Linear from './Linear/Security/Lock.svelte';
+import RotateCw_Linear from './Linear/Arrows/RotateCw.svelte';
+import RotateCcw_Linear from './Linear/Arrows/RotateCcw.svelte';
+import Maximize_Linear from './Linear/Arrows/Maximize.svelte';
+import Minus_Linear from './Linear/Basic/Minus.svelte';
+import Plus_Linear from './Linear/Basic/Plus.svelte';
+import Cross_Linear from './Linear/Basic/Cross.svelte';
+import Sliders_Horiz_Linear from './Linear/Basic/SlidersHoriz.svelte';
+import Sliders_Vert_Linear from './Linear/Basic/SlidersVert.svelte';
+import Volume_Mute_Linear from './Linear/Audiovisual/VolumeMute.svelte';
+import Volume_Low_Linear from './Linear/Audiovisual/VolumeLow.svelte';
+import Volume_High_Linear from './Linear/Audiovisual/VolumeHigh.svelte';
 // Filled
 import Server_Filled from './Filled/Security/Server.svelte';
 import Star_Filled from './Filled/Basic/Star.svelte';
 import Play_Filled from './Filled/Audiovisual/Play.svelte';
+import Pause_Filled from './Filled/Audiovisual/Pause.svelte';
 import Eye_Filled from './Filled/Security/Eye.svelte';
 import Lock_Filled from './Filled/Security/Lock.svelte';
 // FA
@@ -61,6 +73,17 @@ export const Icon = {
 		Bell: Bell_Linear,
 		Heart: Heart_Linear,
 		Lock: Lock_Linear,
+		RotateCw: RotateCw_Linear,
+		RotateCcw: RotateCcw_Linear,
+		Maximize: Maximize_Linear,
+		Minus: Minus_Linear,
+		Plus: Plus_Linear,
+		Cross: Cross_Linear,
+		SlidersHoriz: Sliders_Horiz_Linear,
+		SlidersVert: Sliders_Vert_Linear,
+		VolumeMute: Volume_Mute_Linear,
+		VolumeLow: Volume_Low_Linear,
+		VolumeHigh: Volume_High_Linear,
 	},
 	Duotone: {
 		Info: Info_Duotone,
@@ -69,6 +92,7 @@ export const Icon = {
 		Server: Server_Filled,
 		Star: Star_Filled,
 		Play: Play_Filled,
+		Pause: Pause_Filled,
 		Eye: Eye_Filled,
 		Lock: Lock_Filled,
 	},

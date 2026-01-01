@@ -97,6 +97,7 @@ export function getSeriesMetadata(series: GetShowTitleResponse['title']) {
 		title: series.originalTitleText?.text || 'Unknown Title',
 		image: series.primaryImage?.url || null,
 		seasonsCount: series.episodes.seasons?.length || 1,
+		episodesCount: series.episodes.allEpisodesTotal?.total || 0,
 		directors: series.directors?.edges.map((edge) => edge.node.name.nameText.text) || [],
 		releaseDate: { ...series.releaseDate, ...series.releaseYear },
 		rating: series.ratingsSummary?.aggregateRating ?? ('N/A' as const),
