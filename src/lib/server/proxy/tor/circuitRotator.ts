@@ -1,5 +1,6 @@
 import net from 'net';
-import { TOR_CONTROL_PORT, TOR_PASSWORD, TOR_ROTATION_THRESHOLD } from './config';
+import { TOR_CONTROL_PORT, TOR_ROTATION_THRESHOLD } from './config';
+import { TOR_PASSWORD } from '$env/static/private';
 
 /**
  * Rotates the Tor identity by sending a SIGNAL NEWNYM command to the Tor control port
