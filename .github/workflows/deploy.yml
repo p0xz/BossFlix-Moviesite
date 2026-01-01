@@ -27,6 +27,7 @@ jobs:
         run: bun run build
         env:
           GRAPHQL_ENDPOINT: ${{ secrets.GRAPHQL_ENDPOINT }}
+          TOR_PASSWORD: ${{ secrets.TOR_PASSWORD }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v5
