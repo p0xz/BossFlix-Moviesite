@@ -13,6 +13,7 @@
 	import { historyStorage } from '$lib/features/history/stores/history.store.svelte';
 	import type { SourceOrigin } from '$lib/features/player/config/source.config';
 	import { onMount } from 'svelte';
+	import { dev } from '$app/environment';
 
 	let { data, params } = $props();
 
@@ -87,7 +88,8 @@
 		fetch(`/api/player/resolver?url=${encodeURIComponent(iframeSrc)}`)
 			.then((res) => res.json())
 			.then((response) => {
-				videoSrc = `http://localhost:5173/api/proxy?url=${encodeURIComponent(response.videoUrl)}`;
+				const host = dev ? 'http://localhost:5173' : `https://bossflix.org`;
+				videoSrc = `${host}/api/proxy?url=${encodeURIComponent(response.videoUrl)}`;
 			})
 			.catch((e) => {
 				console.error('Failed to load native player source', e);
