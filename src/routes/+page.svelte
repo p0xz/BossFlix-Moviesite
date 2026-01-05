@@ -49,7 +49,7 @@
 		class="group relative mt-6 h-[65vh] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10 md:h-[75vh]"
 	>
 		<img
-			{src}
+			src={src || featuredMovie.images.edges[0].node.url}
 			{srcset}
 			alt={featuredMovie.title}
 			draggable="false"

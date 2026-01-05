@@ -13,8 +13,7 @@
 	type ServerOption = 'native' | SourceOrigin;
 
 	const servers: { id: ServerOption; label: string }[] = [
-		{ id: 'native', label: 'Native (Default)' },
-		{ id: 'vidsrc', label: 'VidSrc' },
+		{ id: 'vidsrc', label: 'VidSrc (Default)' },
 		{ id: 'vidstream', label: 'VidStream' },
 		{ id: 'superembed', label: 'SuperEmbed' },
 		{ id: 'primewire', label: 'PrimeWire' },
@@ -50,7 +49,7 @@
 				isServerMenuOpen = false;
 			})}
 		>
-			<div class="p-1">
+			<div class="p-1 [&_button]:not-last:mb-1">
 				<p class="px-3 py-2 text-[10px] font-bold tracking-wider text-gray-500 uppercase">Select Server</p>
 				{#each servers as server (server.id)}
 					<button

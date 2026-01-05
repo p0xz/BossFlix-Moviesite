@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { page } from '$app/state';
+
 	import EpisodeRating from '$lib/core/ui/EpisodeRating.svelte';
 	import PlayerContainer from '$lib/features/player/components/PlayerContainer.svelte';
 	import ServerSelector from '$lib/features/player/components/ServerSelector.svelte';
@@ -13,22 +14,19 @@
 	import { historyStorage } from '$lib/features/history/stores/history.store.svelte';
 	import type { SourceOrigin } from '$lib/features/player/config/source.config';
 	import { onMount } from 'svelte';
-	import { dev } from '$app/environment';
+	import { invalid } from '@sveltejs/kit';
 
 	let { data, params } = $props();
 
 	let seasonSeed = $derived(Number(page.url.searchParams.get('season')) || 1);
 	let episodeSeed = $derived(Number(page.url.searchParams.get('episode')) || 1);
-	let iframeSrc = $derived(
-		buildSourceUrl('vidsrc', params.id, {
-			season: seasonSeed,
-			episode: episodeSeed,
-		}),
-	);
 
-	let videoSrc = $state<string>('');
-	let selectedServer = $state<SourceOrigin | 'native'>('native');
+	let nativeSrc = $state<string>('');
+	let selectedServer = $state<SourceOrigin | 'native'>('vidsrc');
+
 	let autoPlay = $state(true);
+	let autoNext = $state(true);
+	let autoSubtitles = $state(true);
 
 	const seasonEpisodes = $derived(data.series.seasons.get(seasonSeed) ?? []);
 	const hasMultipleSeasons = $derived(data.series.metadata.seasonsCount > 1);
@@ -37,6 +35,10 @@
 
 	let isSeasonMenuActive = $state<boolean>(false);
 
+	function hasSeason(season: number) {
+		return data.series.seasons.has(season);
+	}
+
 	async function updateURL(season: number, episode: number) {
 		return goto(`/series/${params.id}?season=${season}&episode=${episode}`, {
 			replaceState: true,
@@ -44,23 +46,23 @@
 		});
 	}
 
-	function updateSeason(season: number) {
+	function updateSeason(season: number, next: boolean = false) {
 		if (seasonSeed === season) {
 			isSeasonMenuActive = false;
 			return;
 		}
 
 		isSeasonMenuActive = false;
-		updateURL(season, 1);
+		!next && updateURL(season, 1);
 	}
 
-	function updateEpisode(episode: number) {
+	function updateEpisode(episode: number, next: boolean = false) {
 		if (episodeSeed === episode) return;
-		updateURL(seasonSeed, episode);
+		!next && updateURL(seasonSeed, episode);
 		historyStorage.markEpisodes(params.id, seasonSeed, episode);
 	}
 
-	function handleNextEpisode() {
+	async function handleNextEpisode() {
 		// Find current episode in season list
 		const currentIndex = seasonEpisodes.findIndex((e) => e.node.series?.episodeNumber.episodeNumber === episodeSeed);
 
@@ -68,11 +70,17 @@
 			// Check next episode in same season
 			const nextEp = seasonEpisodes[currentIndex + 1];
 			if (nextEp && isReleased(nextEp.node.releaseDate ?? {})) {
-				updateEpisode(nextEp.node.series?.episodeNumber.episodeNumber ?? episodeSeed + 1);
+				updateEpisode(nextEp.node.series?.episodeNumber.episodeNumber ?? episodeSeed + 1, true);
+				episodeSeed += 1;
 				return;
 			}
 		} else if (hasMultipleSeasons && seasonSeed < data.series.metadata.seasonsCount) {
-			updateSeason(seasonSeed + 1);
+			updateSeason(seasonSeed + 1, true);
+			!hasSeason(seasonSeed + 1) && (await invalidate('series:app'));
+
+			seasonSeed += 1;
+			episodeSeed = 1;
+			// updateEpisode(1, true);
 		}
 	}
 
@@ -80,21 +88,21 @@
 		historyStorage.markEpisodes(params.id, seasonSeed, episodeSeed);
 	});
 
-	$effect(() => {
-		if (!iframeSrc) return;
+	// $effect(() => {
+	// 	if (!iframeSrc) return;
 
-		videoSrc = '';
+	// 	nativeSrc = '';
 
-		fetch(`/api/player/resolver?url=${encodeURIComponent(iframeSrc)}`)
-			.then((res) => res.json())
-			.then((response) => {
-				const host = dev ? 'http://localhost:5173' : `https://bossflix.org`;
-				videoSrc = `${host}/api/proxy?url=${encodeURIComponent(response.videoUrl)}`;
-			})
-			.catch((e) => {
-				console.error('Failed to load native player source', e);
-			});
-	});
+	// 	fetch(`/api/player/resolver?url=${encodeURIComponent(iframeSrc)}`)
+	// 		.then((res) => res.json())
+	// 		.then((response) => {
+	// 			const host = dev ? 'http://localhost:5173' : `https://bossflix.org`;
+	// 			nativeSrc = `${host}/api/proxy?url=${encodeURIComponent(response.videoUrl)}`;
+	// 		})
+	// 		.catch((e) => {
+	// 			console.error('Failed to load native player source', e);
+	// 		});
+	// });
 
 	onMount(() => {
 		historyStorage.init(params.id, {
@@ -133,13 +141,16 @@
 	</article>
 	<div class="col-start-1">
 		<PlayerContainer
-			url={videoSrc}
+			url={nativeSrc}
 			mediaTitle={data.series.metadata.title}
 			imdbId={params.id}
 			season={seasonSeed}
 			episode={episodeSeed}
 			bind:selectedServer
 			bind:autoPlay
+			bind:autoNext
+			bind:autoSubtitles
+			{updateURL}
 			onEnded={handleNextEpisode}
 			class="mx-auto mb-6 aspect-video w-full rounded-2xl shadow-2xl ring-1 ring-white/10"
 		/>
