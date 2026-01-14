@@ -51,9 +51,8 @@
 
 	let { data, params } = $props();
 
-	let iframeSrc = $derived(buildSourceUrl('vidsrc', params.id));
 	let videoSrc = $state<string>('');
-	let selectedServer = $state<SourceOrigin | 'native'>('native');
+	let selectedServer = $state<SourceOrigin>('vidsrc');
 	let autoPlay = $state(true);
 
 	onMount(() => {
@@ -66,21 +65,6 @@
 			genres: data.movie.genres ?? [],
 			runtime: 0,
 		});
-	});
-
-	$effect(() => {
-		if (!iframeSrc) return;
-
-		videoSrc = '';
-
-		fetch(`/api/player/resolver?url=${encodeURIComponent(iframeSrc)}`)
-			.then((res) => res.json())
-			.then((response) => {
-				videoSrc = `http://localhost:5173/api/proxy?url=${encodeURIComponent(response.videoUrl)}`;
-			})
-			.catch((e) => {
-				console.error('Failed to load native player source', e);
-			});
 	});
 </script>
 
